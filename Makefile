@@ -15,7 +15,7 @@ CPPFLAGS = $(CFLAGS)
 SOURCES = bc.cpp bc_tokenizer.cpp bc_tokenizer.h bc_calc.cpp bc_calc.h arbnum.cpp arbnum.h
 
 all: bc
-
+	echo os=$(DETECTED_OS)
 clean:
 	rm -f *.o bc
 
