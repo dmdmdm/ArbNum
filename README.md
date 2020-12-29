@@ -1,5 +1,5 @@
 # ArbNum
-A simple arbitrary precision library and interactive text program
+A simple arbitrary precision library and interactive terminal program
 
 I tired to do arbitrary signed integer precision a simple as possible.  No crazy optimizations but somewhat performant.  The code is intended to be readable.
 
