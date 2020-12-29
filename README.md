@@ -18,5 +18,5 @@ There is a testAll() function which tests nearly everything.  Takes about 10 sec
 
 There is a class called Unsigned which performs arbitrary precison unsigned integer operations.
 
-Class ArbNum uses Unsigned to do signed arbitrary precison unsigned interger operations.
-eg it turns 10 + (-20) into 20 - 10 and calls Unsigned.subtract(20, 10)
+Class ArbNum uses Unsigned to do signed arbitrary precison unsigned integer operations.
+For example: it turns 10 + (-20) into 20 - 10 and calls Unsigned.subtract(20, 10)
