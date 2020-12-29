@@ -21,7 +21,7 @@ SOURCES = bc.cpp bc_tokenizer.cpp bc_tokenizer.h bc_calc.cpp bc_calc.h arbnum.cp
 all: bc
 
 log_os:
-	echo os=$(DETECTED_OS)
+	@echo os=$(DETECTED_OS)  ldflags=$(LDFLAGS)
 
 clean:
 	rm -f *.o bc
