@@ -20,7 +20,6 @@ else
 endif
 
 CC = gcc
-LDFLAGS = -lstdc++ -lm -lreadline
 CFLAGS = -g -I. -fno-rtti -fno-exceptions -Wall
 CPPFLAGS = $(CFLAGS)
 SOURCES = bc.cpp bc_tokenizer.cpp bc_tokenizer.h bc_calc.cpp bc_calc.h arbnum.cpp arbnum.h
