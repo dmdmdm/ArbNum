@@ -3,7 +3,7 @@ A simple arbitrary precision library and interactive terminal program
 
 I tired to do arbitrary signed integer precision a simple as possible.  No crazy optimizations but somewhat performant.  The code is intended to be readable.
 
-![Demo](https://github.com/dmdmdm/ArbNum/arbnum2.gif)
+![Demo](arbnum2.gif)
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
