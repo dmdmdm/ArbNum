@@ -21,8 +21,7 @@ static void usage() {
           "\n"
           "Enter 'help' once in the program for help\n"
           "\n"
-          "Un*x commands for Win32 console\n"
-          "Copytight (c) 2020 Recursive Pizza\n");
+          "Copyright (c) 2020 Dave McKellar\n");
   exit(1);
 }
 
@@ -67,7 +66,7 @@ int main(const int argc, char* argv[]) {
 
     const time_t duration = time(NULL) - start;
     if (duration > 1) {
-      printf("Took %ld seconds\n", duration);
+      printf("Took %ld seconds\n", (long)duration);
     }
   }
 #ifdef __linux__
