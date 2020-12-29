@@ -1,10 +1,13 @@
 # Required packages: readline-devel glibc-devel gcc gcc-c++ make
 
-LDFLAGS = -lstdc++ -lm
 ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
 	DETECTED_OS = Windows
 else
 	DETECTED_OS = $(shell uname)  # same as "uname -s"
+endif
+
+LDFLAGS = -lstdc++ -lm
+ifne ($(DETECTED_OS),Windows) 
 	LDFLAGS += -lreadline
 endif
 
