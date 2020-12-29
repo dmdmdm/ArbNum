@@ -13,8 +13,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: make log_os
-      run: make log_os
     - name: make
       run: make
     - name: make check
