@@ -6,13 +6,6 @@ else
 	DETECTED_OS = $(shell uname)  # same as "uname -s"
 endif
 
-LAND=unknown
-ifeq ($(DETECTED_OS),Windows) 
-	LAND = 'the land of Redmond'
-else
-	LAND = 'there are penguins here'
-endif
-
 LDFLAGS = -lstdc++ -lm
 ifeq ($(DETECTED_OS),Windows) 
 else
@@ -25,9 +18,6 @@ CPPFLAGS = $(CFLAGS)
 SOURCES = bc.cpp bc_tokenizer.cpp bc_tokenizer.h bc_calc.cpp bc_calc.h arbnum.cpp arbnum.h
 
 all: bc
-
-log_os:
-	@echo os=$(DETECTED_OS)  land=$(LAND)  ldflags=$(LDFLAGS)
 
 clean:
 	rm -f *.o bc
