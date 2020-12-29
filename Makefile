@@ -7,7 +7,8 @@ else
 endif
 
 LDFLAGS = -lstdc++ -lm
-ifne ($(DETECTED_OS),Windows) 
+ifeq ($(DETECTED_OS),Windows) 
+else
 	LDFLAGS += -lreadline
 endif
 
