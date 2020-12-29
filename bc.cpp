@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #include <stdio.h>
@@ -29,7 +29,13 @@ static void usage() {
 int main(const int argc, char* argv[]) {
   if (argc > 1) {
     if (strcmp(argv[1], "-?") == 0) usage();
+
+    if (strcmp(argv[1], "-t") == 0) {
+        exit(!ArbNum::testAll());
+    }
+    usage();
   }
+
 
 #ifdef __linux__
   char* line;
