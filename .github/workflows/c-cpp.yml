@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    -name: whatsthere
+    - name: whatsthere
       run: ls -l
     - name: make
       run: make
