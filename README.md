@@ -7,7 +7,7 @@ I tired to do arbitrary signed integer precision a simple as possible.  No crazy
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
-- abs, factorial, gcd, isprime, max, min, random, sign, sqrt
+- abs, factorial, gcd, isprime, max, min, pow, sign, sqrt
 
 # Files
 - *arbnum.cpp* and *arbnum.h* perform the math.  You can drop them into another project.
