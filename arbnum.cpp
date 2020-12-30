@@ -38,6 +38,19 @@ void Unsigned::padShorterNumber(Unsigned& a, Unsigned& b) {
   }
 }
 
+void Unsigned::padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsigned &padded) {
+	if (pA->length() < pB->length()) {
+   	padded = *pA;
+    padded.pad(pB->length());
+    pA = &padded;
+  }
+  else {
+    padded = *pB;
+    padded.pad(pA->length());
+    pB = &padded;
+   }
+}
+
 void Unsigned::zero() {
   for (digits_t::iterator it = mDigits.begin(); it != mDigits.end(); it++) {
     *it = 0;
@@ -545,6 +558,7 @@ void Unsigned::mod(const Unsigned& other) { set(mod(*this, other)); }
 
 void Unsigned::pow(const Unsigned& other) { set(pow(*this, other)); }
 
+/*
 int Unsigned::compare(const Unsigned& a, const Unsigned& b) {
   Unsigned workingA(a);
   Unsigned workingB(b);
@@ -554,6 +568,22 @@ int Unsigned::compare(const Unsigned& a, const Unsigned& b) {
   for (size_t i = 0; i < workingA.length(); i++) {
     if (workingA[i] < workingB[i]) return -1;
     if (workingA[i] > workingB[i]) return 1;
+  }
+
+  return 0;
+}
+*/
+
+int Unsigned::compare(const Unsigned &aIn, const Unsigned &bIn) {
+  const Unsigned *pA = &aIn;
+  const Unsigned *pB = &bIn;
+  Unsigned padded;
+
+  padShorterNumber(pA, pB, padded);
+
+  for (size_t i = 0; i < pA->length(); i++) {
+    if (pA->mDigits[i] < pB->mDigits[i]) return -1;
+    if (pA->mDigits[i] > pB->mDigits[i]) return 1;
   }
 
   return 0;
