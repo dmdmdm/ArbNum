@@ -17,7 +17,7 @@ I tired to do arbitrary signed integer precision a simple as possible.  No crazy
 - **bc.cpp** is just the main
 
 # More details
-There is a testAll() function which tests nearly everything.  Takes about 20 seconds to run.
+There is a testAll() function which tests nearly everything in about 20 seconds.
 
 There is a class called Unsigned which performs arbitrary precison unsigned integer operations.
 
