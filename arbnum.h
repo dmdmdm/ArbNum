@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifndef ARBNUM_H
@@ -18,6 +18,7 @@ class Unsigned {
   void zero();
   void pad(const size_t wantedLength);
   static void padShorterNumber(Unsigned&, Unsigned&);
+  static void padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsigned &padded);
   void appendRight(const int digit, const size_t numberOfDigits);
 
   static int charToInt(const char);
