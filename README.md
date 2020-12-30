@@ -24,4 +24,6 @@ There is a class called Unsigned which performs arbitrary precison unsigned inte
 Class ArbNum uses Unsigned to do signed arbitrary precison signed integer operations.
 For example: it turns 10 + (-20) into 20 - 10 and calls Unsigned.subtract(20, 10)
 
+Has C++ operator overloading so you can to do: a + b * c where they are ArbNum's.
+
 Compiles on Ubuntu, macOS, Windows
