@@ -13,7 +13,7 @@ I tired to do arbitrary signed integer precision a simple as possible.  No crazy
 # Files
 - **arbnum.cpp** and **arbnum.h** perform the math.  You can drop them into another project.
 - **bc_tokeniser.cpp** and **bc_tokenizer.h** break the input into text tokens.
-- **bc_calc.cpp** and **bc_calc.h** perform the math on the token using arbnum.
+- **bc_calc.cpp** and **bc_calc.h** perform the math on the token using ArbNum.
 - **bc.cpp** is just the main
 
 # More details
