@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #include "arbnum.h"
@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 //------------------------------------------------------------------------------
 // Unsigned
