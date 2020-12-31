@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #include "bc_calc.h"
@@ -107,7 +107,9 @@ void Calc::help() {
   printf("String things together: 2 + 5 + 5 * 80000000000000000000000000\n");
   printf("Use brackets: 1 + (2 * 3)\n");
   printf("Built-in functions: %s\n", getFuncs().c_str());
-  printf("\teg: gcd(10 * 10, 6 + 7)\n");
+  printf("Examples:\n");
+  printf("\tgcd(10 * 10, 6 + 7)\n");
+  printf("\t! isprime(27)\n");
   printf("\n");
   printf("help <enter> for this\n");
   printf("tests <enter> to run checks\n");
@@ -165,6 +167,13 @@ ArbNum Calc::simpleExpr(Tokenizer& tokenizer) {
               tok2.string.c_str());
       return err;
     }
+  } else if (tok1.isBang()) {  // ! <expr>
+    const ArbNum b = expr(tokenizer);
+    if (!b.isNormal()) {
+      fprintf(stderr, "Expected ! <expr>\n");
+      return err;
+    }
+    a = !b;
   } else {
     fprintf(stderr,
             "Expected number, open bracket or function call, got '%s'\n",
