@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifndef BC_TOKENIZER_H
@@ -26,6 +26,7 @@ struct Token {
   std::string toString() const;
   bool isOpenBracket() const { return type == T_PUNCT && string == "("; }
   bool isCloseBracket() const { return type == T_PUNCT && string == ")"; }
+  bool isBang() const { return type == T_PUNCT && string == "!"; }
 };
 
 class Tokenizer {
