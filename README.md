@@ -25,5 +25,6 @@ Class ArbNum uses Unsigned to do signed arbitrary precison signed integer operat
 For example: it turns 10 + (-20) into 20 - 10 and calls Unsigned.subtract(20, 10)
 
 Has C++ operator overloading so you can to do: a + b * c where they are ArbNum's.
+You can construct with string, int, long and it has methods toString(), toInt(), toLong() to get values out.
 
 Compiles on Ubuntu, macOS, Windows
