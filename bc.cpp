@@ -30,11 +30,15 @@ int main(const int argc, char* argv[]) {
     if (strcmp(argv[1], "-?") == 0) usage();
 
     if (strcmp(argv[1], "-t") == 0) {
-        exit(!ArbNum::testAll());
+      const time_t start = time(NULL);
+      const bool result = ArbNum::testAll();
+      const time_t duration = time(NULL) - start;
+      printf("Took %ld seconds\n", (long)duration);
+      exit(!result);
     }
+
     usage();
   }
-
 
 #ifdef __linux__
   char* line;
