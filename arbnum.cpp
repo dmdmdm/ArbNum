@@ -609,6 +609,7 @@ Unsigned Unsigned::operator--(int) {
 //------------------------------------------------------------------------------
 // ArbNum
 
+static ArbNum gArbNumZero(0);
 static ArbNum gArbNumOne(1);
 static ArbNum gArbNumIntMin(INT_MIN);
 static ArbNum gArbNumIntMax(INT_MAX);
@@ -676,10 +677,6 @@ void ArbNum::saveNumber(const char* s) {
 ArbNum ArbNum::abs(const ArbNum& a) { return a.mUnsigned; }
 
 ArbNum ArbNum::sign(const ArbNum& a) { return a.mSign; }
-
-ArbNum ArbNum::min(const ArbNum& a, const ArbNum& b) { return a < b ? a : b; }
-
-ArbNum ArbNum::max(const ArbNum& a, const ArbNum& b) { return a > b ? a : b; }
 
 ArbNum ArbNum::add(const ArbNum& a, const ArbNum& b) {
   ArbNum result;
@@ -800,6 +797,14 @@ ArbNum ArbNum::divide(const ArbNum& dividend, const ArbNum& divisor) {
 
 ArbNum ArbNum::mod(const ArbNum& dividend, const ArbNum& divisor) {
   return divideWithRem(dividend, divisor).remainder;
+}
+
+ArbNum ArbNum::min(const ArbNum& a, const ArbNum& b) { return a < b ? a : b; }
+
+ArbNum ArbNum::max(const ArbNum& a, const ArbNum& b) { return a > b ? a : b; }
+
+ArbNum ArbNum::doNot(const ArbNum& a) {
+  return a.isZero() ? gArbNumOne : gArbNumZero;
 }
 
 ArbNum ArbNum::pow(const ArbNum& a, const ArbNum& n) {
