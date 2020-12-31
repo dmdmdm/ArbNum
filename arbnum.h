@@ -208,14 +208,15 @@ class ArbNum {
 
   static ArbNum abs(const ArbNum&);
   static ArbNum sign(const ArbNum&);
-  static ArbNum min(const ArbNum&, const ArbNum&);
-  static ArbNum max(const ArbNum&, const ArbNum&);
   static ArbNum add(const ArbNum&, const ArbNum&);
   static ArbNum subtract(const ArbNum&, const ArbNum&);
   static ArbNum multiply(const ArbNum&, const ArbNum&);
   static ArbNumDivide divideWithRem(const ArbNum&, const ArbNum&);
   static ArbNum divide(const ArbNum&, const ArbNum&);
   static ArbNum mod(const ArbNum&, const ArbNum&);
+  static ArbNum min(const ArbNum&, const ArbNum&);
+  static ArbNum max(const ArbNum&, const ArbNum&);
+  static ArbNum doNot(const ArbNum&);
   static ArbNum pow(const ArbNum&, const ArbNum&);
   static ArbNum gcd(const ArbNum&, const ArbNum&);
   static ArbNum factorial(const ArbNum&);
@@ -332,5 +333,6 @@ inline ArbNum operator%(const ArbNum& a, const ArbNum& b) {
 inline ArbNum operator^(const ArbNum& a, const ArbNum& b) {
   return ArbNum::pow(a, b);
 }
+inline ArbNum operator!(const ArbNum& a) { return ArbNum::doNot(a); }
 
 #endif
