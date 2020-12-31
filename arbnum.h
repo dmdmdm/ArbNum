@@ -18,7 +18,8 @@ class Unsigned {
   void zero();
   void pad(const size_t wantedLength);
   static void padShorterNumber(Unsigned&, Unsigned&);
-  static void padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsigned &padded);
+  static void padShorterNumber(const Unsigned*& pA, const Unsigned*& pB,
+                               Unsigned& padded);
   void appendRight(const int digit, const size_t numberOfDigits);
 
   static int charToInt(const char);
@@ -47,8 +48,12 @@ class Unsigned {
   bool isOdd() const;
   bool isEven() const;
 
+  inline static void addMutable(Unsigned&, Unsigned&);
   static Unsigned add(const Unsigned&, const Unsigned&);
+
+  inline static void subtractMutable(Unsigned&, Unsigned&);
   static Unsigned subtract(const Unsigned&, const Unsigned&);
+
   static Unsigned multiply(const Unsigned&, const Unsigned&);
   static UnsignedDivide divideByOneWithRem(const Unsigned&);
   static UnsignedDivide divideByTwoWithRem(const Unsigned&);
