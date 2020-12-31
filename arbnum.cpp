@@ -197,10 +197,9 @@ Unsigned::Unsigned(const long n) {
 
 Unsigned::Unsigned(const bool b) { set((int)b); }
 
-Unsigned Unsigned::add(const Unsigned& a, const Unsigned& b) {
-  Unsigned workingA(a);
-  Unsigned workingB(b);
-
+// a += b
+// Both a and b will be modified so if you don't want that send in a copy
+inline void Unsigned::addMutable(Unsigned& workingA, Unsigned& workingB) {
   padShorterNumber(workingA, workingB);
 
   int carry = 0;
@@ -220,13 +219,21 @@ Unsigned Unsigned::add(const Unsigned& a, const Unsigned& b) {
   }
 
   workingA.trim();
-  return workingA;
 }
 
-Unsigned Unsigned::subtract(const Unsigned& a, const Unsigned& b) {
+// result = a + b
+Unsigned Unsigned::add(const Unsigned& a, const Unsigned& b) {
   Unsigned workingA(a);
   Unsigned workingB(b);
 
+  addMutable(workingA, workingB);
+
+  return workingA;
+}
+
+// a -= b
+//	Both a and b will be modified so if you don't want that send in a copy
+void Unsigned::subtractMutable(Unsigned& workingA, Unsigned& workingB) {
   padShorterNumber(workingA, workingB);
 
   int borrow = 0;
@@ -249,6 +256,14 @@ Unsigned Unsigned::subtract(const Unsigned& a, const Unsigned& b) {
   }
 
   workingA.trim();
+}
+
+Unsigned Unsigned::subtract(const Unsigned& a, const Unsigned& b) {
+  Unsigned workingA(a);
+  Unsigned workingB(b);
+
+  subtractMutable(workingA, workingB);
+
   return workingA;
 }
 
@@ -546,9 +561,17 @@ Unsigned Unsigned::isPrime(const Unsigned& a) {
   return true;
 }
 
-void Unsigned::add(const Unsigned& other) { set(add(*this, other)); }
+void Unsigned::add(const Unsigned& other) {
+  Unsigned workingB(other);
 
-void Unsigned::subtract(const Unsigned& other) { set(subtract(*this, other)); }
+  addMutable(*this, workingB);
+}
+
+void Unsigned::subtract(const Unsigned& other) {
+  Unsigned workingB(other);
+
+  subtractMutable(*this, workingB);
+}
 
 void Unsigned::multiply(const Unsigned& other) { set(multiply(*this, other)); }
 
@@ -557,22 +580,6 @@ void Unsigned::divide(const Unsigned& other) { set(divide(*this, other)); }
 void Unsigned::mod(const Unsigned& other) { set(mod(*this, other)); }
 
 void Unsigned::pow(const Unsigned& other) { set(pow(*this, other)); }
-
-/*
-int Unsigned::compare(const Unsigned& aIn, const Unsigned& bIn) {
-  Unsigned workingA(aIn);
-  Unsigned workingB(bIn);
-
-  padShorterNumber(workingA, workingB);
-
-  for (size_t i = 0; i < workingA.length(); i++) {
-    if (workingA[i] < workingB[i]) return -1;
-    if (workingA[i] > workingB[i]) return 1;
-  }
-
-  return 0;
-}
-*/
 
 int Unsigned::compare(const Unsigned& aIn, const Unsigned& bIn) {
   const Unsigned* pA = &aIn;
@@ -683,14 +690,16 @@ ArbNum ArbNum::add(const ArbNum& a, const ArbNum& b) {
     // Remove sign from other, subtract other from this
     ArbNum workingB(b);
     workingB.mkPositive();
-    result = subtract(a, workingB);  // Need to use ArbNum::subtract() because
-                                     // it checks to see which larger
+    result =
+        ArbNum::subtract(a, workingB);  // Need to use ArbNum::subtract()
+                                        // because it checks to see which larger
   } else if (a.isNegativeOrZero() && b.isPositiveOrZero()) {
     // -a + b = b - a
     ArbNum workingA(a);
     workingA.mkPositive();
-    result = subtract(b, workingA);  // Need to use ArbNum::subtract() because
-                                     // it checks to see which larger
+    result =
+        ArbNum::subtract(b, workingA);  // Need to use ArbNum::subtract()
+                                        // because it checks to see which larger
   } else if (a.isNegativeOrZero() && b.isNegativeOrZero()) {
     // Both negative => will stay negative
     result.mkNegative();
@@ -728,7 +737,7 @@ ArbNum ArbNum::subtract(const ArbNum& a, const ArbNum& b) {
     ArbNum workingB(b);
     workingA.mkPositive();
     workingB.mkPositive();
-    result = subtract(workingB, workingA);  // Recursive
+    result = ArbNum::subtract(workingB, workingA);  // Recursive
   } else {
     fprintf(stderr, "subtract: unknown case\n");
     result.mkError();
@@ -771,7 +780,7 @@ ArbNumDivide ArbNum::divideWithRem(const ArbNum& dividend,
       return result;
     } else {
       result.quotient.flipSign();
-      // Wikipedia page says -Q -1 here but removing it makes it work.
+      // We differ from the page Wikipedia page here
       result.remainder.flipSign();
       return result;
     }
