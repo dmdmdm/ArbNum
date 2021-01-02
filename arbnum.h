@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-struct UnsignedDivide;
-struct ArbNumDivide;
+class UnsignedDivide;
+class ArbNumDivide;
 
 class Unsigned {
   typedef std::vector<int> digits_t;
@@ -112,7 +112,8 @@ class Unsigned {
   Unsigned operator--(int);
 };
 
-struct UnsignedDivide {
+class UnsignedDivide {
+public:
   Unsigned quotient, remainder;
 
   UnsignedDivide() {
@@ -285,7 +286,8 @@ class ArbNum {
   static bool testAll();
 };
 
-struct ArbNumDivide {
+class ArbNumDivide {
+public:
   ArbNum quotient, remainder;
 
   ArbNumDivide() {
