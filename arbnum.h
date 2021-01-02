@@ -112,8 +112,7 @@ class Unsigned {
   Unsigned operator--(int);
 };
 
-class UnsignedDivide {
- public:
+struct UnsignedDivide {
   Unsigned quotient, remainder;
 
   UnsignedDivide() {
@@ -286,8 +285,7 @@ class ArbNum {
   static bool testAll();
 };
 
-class ArbNumDivide {
- public:
+struct ArbNumDivide {
   ArbNum quotient, remainder;
 
   ArbNumDivide() {
