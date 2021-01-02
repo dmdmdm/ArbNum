@@ -176,6 +176,8 @@ Unsigned::Unsigned(const int n) {
 
 #ifdef __BORLANDC__
   sprintf(buf, "%d", n);
+#elif _MSC_VER
+  _snprintf(buf, sizeof(buf), "%d", n);
 #else
   snprintf(buf, sizeof(buf), "%d", n);
 #endif
@@ -188,6 +190,8 @@ Unsigned::Unsigned(const long n) {
 
 #ifdef __BORLANDC__
   sprintf(buf, "%ld", n);
+#elif _MSC_VER
+  _snprintf(buf, sizeof(buf), "%ld", n);
 #else
   snprintf(buf, sizeof(buf), "%ld", n);
 #endif
@@ -636,6 +640,8 @@ ArbNum::ArbNum(const int n) {
 
 #ifdef __BORLANDC__
   sprintf(buf, "%d", n);
+#elif _MSC_VER
+  _snprintf(buf, sizeof(buf), "%d", n);
 #else
   snprintf(buf, sizeof(buf), "%d", n);
 #endif
@@ -648,6 +654,8 @@ ArbNum::ArbNum(const long n) {
 
 #ifdef __BORLANDC__
   sprintf(buf, "%ld", n);
+#elif _MSC_VER
+  _snprintf(buf, sizeof(buf), "%ld", n);
 #else
   snprintf(buf, sizeof(buf), "%ld", n);
 #endif
