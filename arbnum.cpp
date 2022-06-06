@@ -1006,7 +1006,7 @@ long ArbNum::toLong() const {
 
 long long ArbNum::toLongLong() const {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-#pragma message("Sorry " __FUNCTION__ " isn't supports on this compiler")
+#pragma message("Sorry " __FUNCTION__ " isn't supported on this compiler")
 	return atol(toString().c_str());
 #else
 	return atoll(toString().c_str());
