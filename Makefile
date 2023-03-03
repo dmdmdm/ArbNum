@@ -36,3 +36,7 @@ check: bc
 	else \
 		./bc -t; \
 	fi	
+	
+check_win: bc
+        ls -l 
+        
