@@ -29,6 +29,9 @@ install: all
 
 bc: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
+	
+check_win: bc
+        dir
 
 check: bc
 	@if [ "$(DETECTED_OS)" = "Windows" ]; then \
@@ -37,6 +40,5 @@ check: bc
 		./bc -t; \
 	fi	
 	
-check_win: bc
-        ls -l 
+
         
