@@ -31,7 +31,7 @@ bc: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
 	
 check_win: bc
-	dir
+	bc.exe -t
 
 check: bc
 	@if [ "$(DETECTED_OS)" = "Windows" ]; then \
