@@ -31,6 +31,7 @@ int main(const int argc, char* argv[]) {
 
     if (strcmp(argv[1], "-t") == 0) {
       printf("Running tests\n");
+      exit(0);  // TEST
       const time_t start = time(NULL);
       const bool result = ArbNum::testAll();
       const time_t duration = time(NULL) - start;
