@@ -29,6 +29,10 @@ install: all
 
 bc: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
-	
-check:
-	./bc -t
+
+check: bc
+	@if [ "$(DETECTED_OS)" = "Windows" ]; then\
+		.\bc -t;\
+	else\
+		./bc -t;\
+	fi	
