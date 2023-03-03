@@ -31,7 +31,7 @@ bc.exe: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
 	
 check_win: bc.exe
-	.\\bc.exe -t
+	@bc.exe -t
 	
 bc: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
