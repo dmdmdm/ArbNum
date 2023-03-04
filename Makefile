@@ -3,7 +3,7 @@
 ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
 	DETECTED_OS = Windows
 else
-	DETECTED_OS = $(shell uname)  # same as "uname -s"
+	DETECTED_OS = $(shell uname)
 endif
 
 LDFLAGS = -lstdc++ -lm
