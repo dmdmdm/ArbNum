@@ -56,9 +56,15 @@ void Unsigned::padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsign
 }
 
 void Unsigned::zero() {
-	for (digits_t::iterator it = mDigits.begin(); it != mDigits.end(); it++) {
-		*it = 0;
-	}
+#if __cplusplus >= 201103L // Check if C++11 or later
+    for (auto &digit : mDigits) {
+        digit = 0;
+    }
+#else
+    for (digits_t::iterator it = mDigits.begin(); it != mDigits.end(); it++) {
+        *it = 0;
+    }
+#endif
 }
 
 bool Unsigned::isZero() const {
