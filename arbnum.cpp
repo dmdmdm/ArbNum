@@ -130,7 +130,7 @@ char Unsigned::intToChar(const int n) {
 }
 
 void Unsigned::clear() {
-	mDigits.erase(mDigits.begin(), mDigits.end());
+	mDigits.clear();
 }
 
 void Unsigned::mkError() {
