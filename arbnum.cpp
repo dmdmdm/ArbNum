@@ -360,11 +360,11 @@ UnsignedDivide Unsigned::divideByTwoWithRem(const Unsigned &dividend) {
 	working.prepend(0);
 
 	const int len1 = (int)working.length() - 1;
-	int first, second;
+	int first = 0, second = 0;
 	for (int i = 0; i < len1; i++) {
 		first = working.mDigits[i];
 		second = working.mDigits[i + 1];
-		int save;
+		int save = 0;
 		if (::isEven(first)) {
 			switch(second) {
 		 case 0:
