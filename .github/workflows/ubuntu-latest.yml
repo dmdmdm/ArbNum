@@ -1,4 +1,4 @@
-name: C/C++ CI Ubuntu Latest
+name: C/C++ CI Ubuntu Latest2
  
 on:
   push:
