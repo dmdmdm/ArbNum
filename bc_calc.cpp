@@ -70,7 +70,7 @@ ArbNum Calc::functionCall(Token funcName, Tokenizer& tokenizer) {
     if (!expr1.isNormal()) return expr1;
     const Token comma = tokenizer.getToken();
     ArbNum expr2 = expr(tokenizer);
-    if (!expr2.isNormal()) return expr1;
+    if (!expr2.isNormal()) return expr2;
     const func2_t pFunc2 = (func2_t)pEntry->func;
     result = (*pFunc2)(expr1, expr2);
   } else {
