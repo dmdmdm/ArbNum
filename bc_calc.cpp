@@ -10,11 +10,11 @@
 //------------------------------------------------------------------------------
 // Functions
 
-typedef struct {
+struct Function {
   const char* name;
   int params;
   void* func;
-} Function;
+};
 
 // Alphabetical order
 static const Function gFuncs[] = {{"abs", 1, (void*)ArbNum::abs},
