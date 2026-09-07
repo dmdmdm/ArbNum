@@ -19,7 +19,7 @@ static void usage() {
           "\n"
           "bc - An arbitrary precision calculator language\n"
           "\n"
-          "Enter 'help' once in the program for help\n"
+          "Enter 'help' at the program's command line for help\n"
           "\n"
           "Copyright (c) 2020 Dave McKellar\n");
   exit(1);
