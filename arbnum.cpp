@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright Â© 2020, Dave McKellar
+// Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -16,9 +16,9 @@
 //------------------------------------------------------------------------------
 // Unsigned
 
-static const Unsigned gUnsignedZero(0);
-static const Unsigned gUnsignedOne(1);
-static const Unsigned gUnsignedTwo(2);
+static const Unsigned s_UnsignedZero(0);
+static const Unsigned s_UnsignedOne(1);
+static const Unsigned s_UnsignedTwo(2);
 static const int UNASSIGNED = -1;
 
 void Unsigned::pad(const size_t len) {
@@ -57,13 +57,14 @@ void Unsigned::padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsign
 
 void Unsigned::zero() {
 #if __cplusplus >= 201103L // Check if C++11 or later
-    for (auto &digit : mDigits) {
-        digit = 0;
-    }
+	for (auto &digit : mDigits) {
+		digit = 0;
+	}
 #else
-    for (digits_t::iterator it = mDigits.begin(); it != mDigits.end(); it++) {
-        *it = 0;
-    }
+	// Fallback for pre-C++11
+	for (digits_t::iterator it = mDigits.begin(); it != mDigits.end(); it++) {
+		*it = 0;
+	}
 #endif
 }
 
@@ -277,7 +278,7 @@ Unsigned Unsigned::add(const Unsigned &a, const Unsigned &b) {
 }
 
 // a -= b
-//	Both a and b will be modified so if you don't want that send in a copy
+// Both a and b will be modified so if you don't want that send in a copy
 void Unsigned::subtractMutable(Unsigned &workingA, Unsigned &workingB) {
 	padShorterNumber(workingA, workingB);
 
@@ -367,50 +368,50 @@ UnsignedDivide Unsigned::divideByTwoWithRem(const Unsigned &dividend) {
 		int save = 0;
 		if (::isEven(first)) {
 			switch(second) {
-		 case 0:
-		 case 1:
-			 save = 0;
-			 break;
-		 case 2:
-		 case 3:
-			 save = 1;
-			 break;
-		 case 4:
-		 case 5:
-			 save = 2;
-			 break;
-		 case 6:
-		 case 7:
-			 save = 3;
-			 break;
-		 case 8:
-		 case 9:
-			 save = 4;
-			 break;
+			case 0:
+			case 1:
+				 save = 0;
+				 break;
+			case 2:
+			case 3:
+				 save = 1;
+				 break;
+			case 4:
+			case 5:
+				 save = 2;
+				 break;
+			case 6:
+			case 7:
+				 save = 3;
+				 break;
+			case 8:
+			case 9:
+				 save = 4;
+				 break;
 			}
 		}
 		else {
 			switch(second) {
-		 case 0:
-		 case 1:
-			 save = 5;
-			 break;
-		 case 2:
-		 case 3:
-			 save = 6;
-			 break;
-		 case 4:
-		 case 5:
-			 save = 7;
-			 break;
-		 case 6:
-		 case 7:
-			 save = 8;
-			 break;
-		 case 8:
-		 case 9:
-			 save = 9;
-			 break;
+			case 0:
+			case 1:
+				 save = 5;
+				 break;
+			case 2:
+			case 3:
+				 save = 6;
+				 break;
+			case 4:
+			case 5:
+				 save = 7;
+				 break;
+			case 6:
+			case 7:
+				 save = 8;
+				 break;
+			case 8:
+			case 9:
+				 save = 9;
+				 break;
 			}
 		}
 		result.quotient.append(save);
@@ -428,16 +429,16 @@ UnsignedDivide Unsigned::divideByTwoWithRem(const Unsigned &dividend) {
 UnsignedDivide Unsigned::divideWithRemSlow(const Unsigned &dividend, const Unsigned &divisor) {
 	UnsignedDivide result(0, dividend);
 
-	if (divisor <= gUnsignedTwo) {
+	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toInt()) {
-	  case 0:
-		  fprintf(stderr, "Division by zero\n");
-		  result.quotient.mkError();
-		  return result;
-	  case 1:
-		  return divideByOneWithRem(dividend);
-	  case 2:
-		  return divideByTwoWithRem(dividend);
+		case 0:
+			  fprintf(stderr, "Division by zero\n");
+			  result.quotient.mkError();
+			  return result;
+		case 1:
+			  return divideByOneWithRem(dividend);
+		case 2:
+			 return divideByTwoWithRem(dividend);
 		}
 	}
 
@@ -483,16 +484,16 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 	result.quotient.pad(dividend.length());
 	runningDividend.appendRight(UNASSIGNED, dividend.length());
 
-	if (divisor <= gUnsignedTwo) {
+	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toInt()) {
-	  case 0:
-		  fprintf(stderr, "Division by zero\n");
-		  result.quotient.mkError();
-		  return result;
-	  case 1:
-		  return divideByOneWithRem(dividend);
-	  case 2:
-		  return divideByTwoWithRem(dividend);
+		case 0:
+			  fprintf(stderr, "Division by zero\n");
+			  result.quotient.mkError();
+			  return result;
+		case 1:
+			  return divideByOneWithRem(dividend);
+		case 2:
+			  return divideByTwoWithRem(dividend);
 		}
 	}
 
@@ -531,7 +532,7 @@ Unsigned Unsigned::mod(const Unsigned &a, const Unsigned &b) {
 }
 
 Unsigned Unsigned::pow(const Unsigned &a, const Unsigned &n) {
-	if (n.isZero()) return gUnsignedOne;
+	if (n.isZero()) return s_UnsignedOne;
 
 	const Unsigned x = pow(a, half(n));
 
@@ -646,24 +647,24 @@ int Unsigned::compare(const Unsigned &aIn, const Unsigned &bIn) {
 }
 
 Unsigned Unsigned::operator++(int) {
-	add(gUnsignedOne);
+	add(s_UnsignedOne);
 	return *this;
 }
 
 Unsigned Unsigned::operator--(int) {
-	subtract(gUnsignedOne);
+	subtract(s_UnsignedOne);
 	return *this;
 }
 
 //------------------------------------------------------------------------------
 // ArbNum
 
-static const ArbNum gArbNumZero(0);
-static const ArbNum gArbNumOne(1);
-static const ArbNum gArbNumIntMin(INT_MIN);
-static const ArbNum gArbNumIntMax(INT_MAX);
-static const ArbNum gArbNumLongMin(LONG_MIN);
-static const ArbNum gArbNumLongMax(LONG_MAX);
+static const ArbNum s_ArbNumZero(0);
+static const ArbNum s_ArbNumOne(1);
+static const ArbNum s_ArbNumIntMin(INT_MIN);
+static const ArbNum s_ArbNumIntMax(INT_MAX);
+static const ArbNum s_ArbNumLongMin(LONG_MIN);
+static const ArbNum s_ArbNumLongMax(LONG_MAX);
 
 void ArbNum::set(const ArbNum &in) {
 	mSpecial = in.mSpecial;
@@ -725,6 +726,7 @@ ArbNum::ArbNum(const bool b) {
 }
 
 void ArbNum::clear() {
+	// A checker said mSign isn't set in this function but it is set in mkPositive()
 	mSpecial = SPEC_NORMAL;
 	mkPositive();
 	mUnsigned.clear();
@@ -883,7 +885,7 @@ ArbNum ArbNum::max(const ArbNum &a, const ArbNum &b) {
 }
 
 ArbNum ArbNum::doNot(const ArbNum &a) {
-	return a.isZero() ? gArbNumOne : gArbNumZero;
+	return a.isZero() ? s_ArbNumOne : s_ArbNumZero;
 }
 
 ArbNum ArbNum::pow(const ArbNum &a, const ArbNum &n) {
@@ -919,8 +921,8 @@ ArbNum ArbNum::isPrime(const ArbNum &a) {
 }
 
 ArbNum ArbNum::factorial(const ArbNum &count) {
-	if (count <= gArbNumOne) return gArbNumOne;
-	return factorial(count - gArbNumOne) * count;
+	if (count <= s_ArbNumOne) return s_ArbNumOne;
+	return factorial(count - s_ArbNumOne) * count;
 }
 
 void ArbNum::add(const ArbNum &other) {
@@ -969,12 +971,12 @@ std::string ArbNum::toString() const {
 int ArbNum::toInt() const {
 	if (isZero()) return 0;
 
-	if (*this < gArbNumIntMin) {
+	if (*this < s_ArbNumIntMin) {
 		fprintf(stderr, "Too small for an int: %s\n", toString().c_str());
 		return -1;
 	}
 
-	if (*this > gArbNumIntMax) {
+	if (*this > s_ArbNumIntMax) {
 		fprintf(stderr, "Too large for an int: %s\n", toString().c_str());
 		return -1;
 	}
@@ -985,12 +987,12 @@ int ArbNum::toInt() const {
 long ArbNum::toLong() const {
 	if (isZero()) return 0;
 
-	if (*this < gArbNumLongMin) {
+	if (*this < s_ArbNumLongMin) {
 		fprintf(stderr, "Too small for a long: %s\n", toString().c_str());
 		return -1;
 	}
 
-	if (*this > gArbNumLongMax) {
+	if (*this > s_ArbNumLongMax) {
 		fprintf(stderr, "Too large for a long: %s\n", toString().c_str());
 		return -1;
 	}
@@ -1022,12 +1024,12 @@ int ArbNum::compare(const ArbNum &a, const ArbNum &b) {
 }
 
 ArbNum ArbNum::operator++(int) {
-	add(gArbNumOne);
+	add(s_ArbNumOne);
 	return *this;
 }
 
 ArbNum ArbNum::operator--(int) {
-	subtract(gArbNumOne);
+	subtract(s_ArbNumOne);
 	return *this;
 }
 
