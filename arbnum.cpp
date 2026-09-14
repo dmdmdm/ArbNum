@@ -16,9 +16,9 @@
 //------------------------------------------------------------------------------
 // Unsigned
 
-static Unsigned gUnsignedZero(0);
-static Unsigned gUnsignedOne(1);
-static Unsigned gUnsignedTwo(2);
+static const Unsigned gUnsignedZero(0);
+static const Unsigned gUnsignedOne(1);
+static const Unsigned gUnsignedTwo(2);
 static const int UNASSIGNED = -1;
 
 void Unsigned::pad(const size_t len) {
@@ -658,12 +658,12 @@ Unsigned Unsigned::operator--(int) {
 //------------------------------------------------------------------------------
 // ArbNum
 
-static ArbNum gArbNumZero(0);
-static ArbNum gArbNumOne(1);
-static ArbNum gArbNumIntMin(INT_MIN);
-static ArbNum gArbNumIntMax(INT_MAX);
-static ArbNum gArbNumLongMin(LONG_MIN);
-static ArbNum gArbNumLongMax(LONG_MAX);
+static const ArbNum gArbNumZero(0);
+static const ArbNum gArbNumOne(1);
+static const ArbNum gArbNumIntMin(INT_MIN);
+static const ArbNum gArbNumIntMax(INT_MAX);
+static const ArbNum gArbNumLongMin(LONG_MIN);
+static const ArbNum gArbNumLongMax(LONG_MAX);
 
 void ArbNum::set(const ArbNum &in) {
 	mSpecial = in.mSpecial;
