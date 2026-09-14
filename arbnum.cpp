@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -56,12 +56,11 @@ void Unsigned::padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsign
 }
 
 void Unsigned::zero() {
-#if __cplusplus >= 201103L // Check if C++11 or later
+#if __cplusplus >= 201103L
 	for (auto &digit : mDigits) {
 		digit = 0;
 	}
 #else
-	// Fallback for pre-C++11
 	for (digits_t::iterator it = mDigits.begin(); it != mDigits.end(); it++) {
 		*it = 0;
 	}
