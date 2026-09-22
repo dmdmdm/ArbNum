@@ -17,7 +17,7 @@ CFLAGS = -g -I. -fno-rtti -fno-exceptions -Wall
 CPPFLAGS = $(CFLAGS)
 SOURCES = bc.cpp bc_tokenizer.cpp bc_tokenizer.h bc_calc.cpp bc_calc.h arbnum.cpp arbnum.h
 
-all: bc
+all: bc example_use_of_arbnum
 
 clean:
 	rm -f *.o bc
@@ -29,12 +29,19 @@ install: all
 
 bc.exe: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
-	
+
 check_win: bc.exe
-	 echo Checks are disabled on Windows
-	
+	echo Tests are disabled in Windows
+
 bc: Makefile bc.o bc_tokenizer.o bc_calc.o arbnum.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o arbnum.o $(LDFLAGS)
 
+example_use_of_arbnum: Makefile arbnum.o example_use_of_arbnum.o
+	$(CC) $(CFLAGS) -o $@ arbnum.o example_use_of_arbnum.o $(LDFLAGS)
+
 check: bc
-	./bc -t
+	@if [ "$(DETECTED_OS)" == "Windows" ]; then \
+		.\\bc -t; \
+	else \
+		./bc -t; \
+	fi	
