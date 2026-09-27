@@ -17,7 +17,7 @@ struct Function {
 };
 
 // Alphabetical order
-static const Function gFuncs[] = {{"abs", 1, (void*)ArbNum::abs},
+static const Function s_Funcs[] = {{"abs", 1, (void*)ArbNum::abs},
                                   {"factorial", 1, (void*)ArbNum::factorial},
                                   {"gcd", 2, (void*)ArbNum::gcd},
                                   {"isprime", 1, (void*)ArbNum::isPrime},
@@ -29,7 +29,7 @@ static const Function gFuncs[] = {{"abs", 1, (void*)ArbNum::abs},
                                   {NULL, 0, NULL}};
 
 static const Function* findFunc(const char* name) {
-  for (const Function* pEntry = gFuncs; pEntry->name; pEntry++) {
+  for (const Function* pEntry = s_Funcs; pEntry->name; pEntry++) {
     if (strcmp(pEntry->name, name) == 0) {
       return pEntry;
     }
@@ -40,7 +40,7 @@ static const Function* findFunc(const char* name) {
 static const std::string getFuncs() {
   std::string result;
 
-  for (const Function* pEntry = gFuncs; pEntry->name; pEntry++) {
+  for (const Function* pEntry = s_Funcs; pEntry->name; pEntry++) {
     if (!result.empty()) result += ", ";
     result += (std::string)pEntry->name + (std::string) "()";
   }
