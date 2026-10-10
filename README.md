@@ -7,7 +7,7 @@ I tired to do arbitrary signed integer math as clearly as possible.  No crazy op
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
-- abs, factorial, gcd, lcm, isprime, max, min, pow, sign, sqrt
+- abs, factorial, gcd, isprime, lcm, max, min, pow, sign, sqrt
 - with integers of any length
 
 # Files
