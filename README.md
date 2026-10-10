@@ -7,7 +7,7 @@ I tired to do arbitrary signed integer math as clearly as possible.  No crazy op
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
-- abs, factorial, gcd, isprime, max, min, pow, sign, sqrt
+- abs, factorial, gcd, lcm, isprime, max, min, pow, sign, sqrt
 - with integers of any length
 
 # Files
@@ -29,3 +29,4 @@ You can construct with string, int, long and it has methods toString(), toInt(),
 See file example_use_of_arbnum.cpp
 
 Compiles on Ubuntu, macOS, Windows
+Requires readline-devel package on Fedora

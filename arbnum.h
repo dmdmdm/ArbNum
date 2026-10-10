@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright Â© 2020, Dave McKellar
+// Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifndef ARBNUM_H
@@ -61,6 +61,7 @@ public:
 	static Unsigned mod(const Unsigned &, const Unsigned &);
 	static Unsigned pow(const Unsigned &, const Unsigned &);
 	static Unsigned gcd(const Unsigned &, const Unsigned &);
+	static Unsigned lcm(const Unsigned &, const Unsigned &);
 	static Unsigned sqrt(const Unsigned &);
 	static Unsigned random(const Unsigned &);
 	static Unsigned isPrime(const Unsigned &);
@@ -163,6 +164,7 @@ public:
 	static ArbNum doNot(const ArbNum &);
 	static ArbNum pow(const ArbNum &, const ArbNum &);
 	static ArbNum gcd(const ArbNum &, const ArbNum &);
+	static ArbNum lcm(const ArbNum &, const ArbNum &);
 	static ArbNum factorial(const ArbNum &);
 	static ArbNum sqrt(const ArbNum &);
 	static ArbNum random(const ArbNum &);
@@ -205,6 +207,8 @@ public:
 	static bool testPow(const long, const long);
 	static long gcdLong(const long, const long);
 	static bool testGcd(const long, const long);
+	static long lcmLong(const long, const long);
+	static bool testLcm(const long, const long);
 	static long sqrtLong(const long);
 	static bool testSqrt(const long);
 	static long isPrimeLong(const long);

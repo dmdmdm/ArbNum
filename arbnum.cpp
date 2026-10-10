@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright Â© 2020, Dave McKellar
+// Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -543,13 +543,18 @@ Unsigned Unsigned::pow(const Unsigned &a, const Unsigned &n) {
 	}
 }
 
-// Euler's method
+// Greatest Common Divisor - Euler's method
 Unsigned Unsigned::gcd(const Unsigned &a, const Unsigned &b) {
 	if (a.isZero()) return b;
 	return gcd(b % a, a);
 }
 
-// Newton's method
+// Lowest Common Multiple
+Unsigned Unsigned::lcm(const Unsigned &a, const Unsigned &b) {
+	return (a * b) / gcd(a, b);
+}
+
+// Square root - Newton's method
 Unsigned Unsigned::sqrt(const Unsigned &s) {
 	Unsigned x0 = half(s);
 
@@ -901,6 +906,10 @@ ArbNum ArbNum::gcd(const ArbNum &a, const ArbNum &b) {
 	return Unsigned::gcd(a.mUnsigned, b.mUnsigned);
 }
 
+ArbNum ArbNum::lcm(const ArbNum &a, const ArbNum &b) {
+	return (a * b) / gcd(a, b);
+}
+
 ArbNum ArbNum::sqrt(const ArbNum &a) {
 	if (a.isNegative()) {
 		ArbNum result;
@@ -1158,6 +1167,19 @@ bool ArbNum::testGcd(const long a, const long b) {
 	return lResult == lCorrect;
 }
 
+long ArbNum::lcmLong(const long a, const long b) {
+	return (a * b) / gcdLong(a, b);
+}
+
+bool ArbNum::testLcm(const long a, const long b) {
+	const long lResult = ArbNum::lcm(a, b).toLong();
+	const long lCorrect = lcmLong(a, b);
+	if (lResult != lCorrect) {
+		fprintf(stderr, "lcm(%ld, %ld) = %ld (ArbNum) != %ld (long) fail\n", a, b, lResult, lCorrect);
+	}
+	return lResult == lCorrect;
+}
+
 long ArbNum::sqrtLong(const long s) {
 	if (s < 0) {
 		return sqrtLong(::abs(s));
@@ -1360,6 +1382,18 @@ bool ArbNum::testAll() {
 		printf("Testing gcd with %ld on the left\n", a);
 		for (b = B_START; b >= B_END; b -= B_DEC) {
 			if (testGcd(a, b)) {
+				nSuccess++;
+			}
+			else {
+				nFail++;
+			}
+		}
+	}
+
+	for (a = A_START; a <= A_END; a += A_INC) {
+		printf("Testing lcm with %ld on the left\n", a);
+		for (b = B_START; b >= B_END; b -= B_DEC) {
+			if (testLcm(a, b)) {
 				nSuccess++;
 			}
 			else {
