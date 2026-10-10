@@ -1254,6 +1254,9 @@ void ArbNum::makeTestValues(const long start, const long end, const long inc, st
 		for (long n = -10; n <= 10; n++) {
 			values.push_back(n);
 		}
+
+		std::sort(values.begin(), values.end());
+		(void) std::unique(values.begin(), values.end());
 	} else { // Counting down
 		for (long n = start; n >= end; n += inc) {
 			values.push_back(n);
@@ -1263,13 +1266,11 @@ void ArbNum::makeTestValues(const long start, const long end, const long inc, st
 		for (long n = 10; n >= -10; n--) {
 			values.push_back(n);
 		}
-	}
 
-	// Don't sort
-	/*
-	std::sort(values.begin(), values.end());
-	(void) std::unique(values.begin(), values.end());
-	*/
+		// Reverse sort
+		std::sort(values.begin(), values.end(), std::greater{});
+		(void) std::unique(values.begin(), values.end());
+	}
 }
 
 bool ArbNum::testAll() {
