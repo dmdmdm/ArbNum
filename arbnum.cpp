@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright Â© 2020, Dave McKellar
+// Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -13,6 +13,15 @@
 #include <time.h>
 #include <algorithm>
 #include "arbnum.h"
+
+//------------------------------------------------------------------------------
+// Control logging
+
+static ArbNum_Logging s_Logging = AN_LOG;
+
+void ArbNum_setLogging(const ArbNum_Logging log) {
+	s_Logging = log;
+}
 
 //------------------------------------------------------------------------------
 // Unsigned
@@ -147,13 +156,17 @@ void Unsigned::mkError() {
 void Unsigned::saveNumber(const char *s) {
 	for (const char *p = s; *p; p++) {
 		if (*p == '.') {
-			fprintf(stderr, "Decimals are not supported -- only integers: %s\n", s);
+			if (s_Logging == AN_LOG) {
+				fprintf(stderr, "Decimals are not supported -- only integers: %s\n", s);
+			}
 			mkError();
 			return;
 		}
 
 		if (!isdigit(*p)) {
-			fprintf(stderr, "Invalid number: %s\n", s);
+			if (s_Logging == AN_LOG) {
+				fprintf(stderr, "Invalid number: %s\n", s);
+			}
 			mkError();
 			return;
 		}
@@ -432,13 +445,15 @@ UnsignedDivide Unsigned::divideWithRemSlow(const Unsigned &dividend, const Unsig
 	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toInt()) {
 		case 0:
-			  fprintf(stderr, "Division by zero\n");
-			  result.quotient.mkError();
-			  return result;
+			if (s_Logging == AN_LOG) {
+				fprintf(stderr, "Division by zero\n");
+			}
+			result.quotient.mkError();
+			return result;
 		case 1:
-			  return divideByOneWithRem(dividend);
+			return divideByOneWithRem(dividend);
 		case 2:
-			 return divideByTwoWithRem(dividend);
+			return divideByTwoWithRem(dividend);
 		}
 	}
 
@@ -487,13 +502,15 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toInt()) {
 		case 0:
-			  fprintf(stderr, "Division by zero\n");
-			  result.quotient.mkError();
-			  return result;
+			if (s_Logging == AN_LOG) {
+				fprintf(stderr, "Division by zero\n");
+			}
+			result.quotient.mkError();
+			return result;
 		case 1:
-			  return divideByOneWithRem(dividend);
+			return divideByOneWithRem(dividend);
 		case 2:
-			  return divideByTwoWithRem(dividend);
+			return divideByTwoWithRem(dividend);
 		}
 	}
 
@@ -783,7 +800,9 @@ ArbNum ArbNum::add(const ArbNum &a, const ArbNum &b) {
 
 	}
 	else {
-		fprintf(stderr, "add: unknown case\n");
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "add: unknown case\n");
+		}
 		result.mkError();
 	}
 	return result;
@@ -821,7 +840,9 @@ ArbNum ArbNum::subtract(const ArbNum &a, const ArbNum &b) {
 		result = ArbNum::subtract(workingB, workingA);	// Recursive
 	}
 	else{
-		fprintf(stderr, "subtract: unknown case\n");
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "subtract: unknown case\n");
+		}
 		result.mkError();
 	}
 	return result;
@@ -839,7 +860,9 @@ ArbNumDivide ArbNum::divideWithRem(const ArbNum &dividend, const ArbNum &divisor
 	ArbNumDivide result;
 
 	if (divisor.isZero()) {
-		fprintf(stderr, "Division by zero\n");
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "Division by zero\n");
+		}
 		result.quotient.mkError();
 		return result;
 	}
@@ -985,12 +1008,16 @@ int ArbNum::toInt() const {
 	if (isZero()) return 0;
 
 	if (*this < s_ArbNumIntMin) {
-		fprintf(stderr, "Too small for an int: %s\n", toString().c_str());
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "Too small for an int: %s\n", toString().c_str());
+		}
 		return -1;
 	}
 
 	if (*this > s_ArbNumIntMax) {
-		fprintf(stderr, "Too large for an int: %s\n", toString().c_str());
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "Too large for an int: %s\n", toString().c_str());
+		}
 		return -1;
 	}
 
@@ -1001,12 +1028,16 @@ long ArbNum::toLong() const {
 	if (isZero()) return 0;
 
 	if (*this < s_ArbNumLongMin) {
-		fprintf(stderr, "Too small for a long: %s\n", toString().c_str());
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "Too small for a long: %s\n", toString().c_str());
+		}
 		return -1;
 	}
 
 	if (*this > s_ArbNumLongMax) {
-		fprintf(stderr, "Too large for a long: %s\n", toString().c_str());
+		if (s_Logging == AN_LOG) {
+			fprintf(stderr, "Too large for a long: %s\n", toString().c_str());
+		}
 		return -1;
 	}
 
@@ -1277,6 +1308,7 @@ bool ArbNum::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
 
+	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello", "-25" };
 	const int checkStrExpect[] = { 0, 0, 4, 4000, 0, -25 };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
@@ -1289,6 +1321,7 @@ bool ArbNum::testAll() {
 			nFail++;
 		}
 	}
+	ArbNum_setLogging(AN_LOG);
 
 	const int checkInt[] = { INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX };
 	const int nCheckInt = sizeof(checkInt) / sizeof(checkInt[0]);

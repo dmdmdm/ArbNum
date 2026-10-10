@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+typedef enum { AN_QUIET, AN_LOG } ArbNum_Logging;
+void ArbNum_setLogging(const ArbNum_Logging);
+
 class UnsignedDivide;
 class ArbNumDivide;
 
