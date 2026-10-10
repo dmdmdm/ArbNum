@@ -40,7 +40,7 @@ example_use_of_arbnum: Makefile arbnum.o example_use_of_arbnum.o
 	$(CC) $(CFLAGS) -o $@ arbnum.o example_use_of_arbnum.o $(LDFLAGS)
 
 check: bc
-	@if [ "$(DETECTED_OS)" == "Windows" ]; then \
+	@if [[ "$(DETECTED_OS)" == "Windows" ]]; then \
 		.\\bc -t; \
 	else \
 		./bc -t; \
