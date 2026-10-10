@@ -215,6 +215,7 @@ public:
 	static bool testIsPrime(const long);
 	static long factorialLong(const long);
 	static bool testFactorial(const long);
+	static void makeTestValues(const long start, const long end, const long inc, std::vector<long> &);
 	static bool testAll();
 };
 
