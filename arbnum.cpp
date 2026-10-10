@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <algorithm>
 #include "arbnum.h"
 
 //------------------------------------------------------------------------------
@@ -1241,6 +1242,36 @@ bool ArbNum::testFactorial(const long a) {
 	return lResult == lCorrect;
 }
 
+void ArbNum::makeTestValues(const long start, const long end, const long inc, std::vector<long> &values) {
+	values.clear();
+
+	if (inc > 0) { // Counting up
+		for (long n = start; n <= end; n += inc) {
+			values.push_back(n);
+		}
+
+		// We want extra tests around zero
+		for (long n = -10; n <= 10; n++) {
+			values.push_back(n);
+		}
+	} else { // Counting down
+		for (long n = start; n >= end; n += inc) {
+			values.push_back(n);
+		}
+
+		// We want extra tests around zero
+		for (long n = 10; n >= -10; n--) {
+			values.push_back(n);
+		}
+	}
+
+	// Don't sort
+	/*
+	std::sort(values.begin(), values.end());
+	(void) std::unique(values.begin(), values.end());
+	*/
+}
+
 bool ArbNum::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
@@ -1297,24 +1328,41 @@ bool ArbNum::testAll() {
 	const long A_INC = 77;
 	const long B_START = 10000;
 	const long B_END = -10000;
-	const long B_DEC = 88;
-	long a, b;
+	const long B_INC = -88;
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	// Make vectors of test numbers
+	std::vector<long> a_values, b_values;
+	makeTestValues(A_START, A_END, A_INC, a_values);
+	makeTestValues(B_START, B_END, B_INC, b_values);
+
+	/*
+	printf("a_values:\n");
+	for (long a : a_values) {
+		printf("a=%ld\n", a);
+	}
+
+	printf("b_values:\n");
+	for (long b : b_values) {
+		printf("b=%ld\n", b);
+	}
+	exit(9);
+	*/
+	
+	for (long a : a_values) {
 		printf("Testing compare with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
 			if (testCompare(a, b)) {
 				nSuccess++;
 			}
 			else {
 				nFail++;
+			}
 		 }
-		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing add with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
 			if (testAdd(a, b)) {
 				nSuccess++;
 			}
@@ -1324,9 +1372,9 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing subtract with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
 			if (testSubtract(a, b)) {
 				nSuccess++;
 			}
@@ -1336,9 +1384,9 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing multiply with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
 			if (testMultiply(a, b)) {
 				nSuccess++;
 			}
@@ -1348,9 +1396,9 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = -10; a < 10; a++) {
+	for (long a = -10; a <= 10; a++) {
 		printf("Testing pow with %ld on the left\n", a);
-		for (b = 1; b <= 9; b++) {
+		for (long b = 1; b <= 9; b++) {
 			if (testPow(a, b)) {
 				nSuccess++;
 			}
@@ -1360,9 +1408,10 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing divide with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
+			if (b == 0) continue; // Avoid divide by zero
 			if (testDivide(a, b)) {
 				nSuccess++;
 			}
@@ -1372,9 +1421,10 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing mod with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
+			if (b == 0) continue; // Avoid divide by zero
 			if (testMod(a, b)) {
 				nSuccess++;
 			}
@@ -1384,9 +1434,9 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing gcd with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
 			if (testGcd(a, b)) {
 				nSuccess++;
 			}
@@ -1396,9 +1446,9 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = A_START; a <= A_END; a += A_INC) {
+	for (long a : a_values) {
 		printf("Testing lcm with %ld on the left\n", a);
-		for (b = B_START; b >= B_END; b -= B_DEC) {
+		for (long b : b_values) {
 			if (testLcm(a, b)) {
 				nSuccess++;
 			}
@@ -1408,7 +1458,7 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = 0; a <= A_END; a += A_INC) {
+	for (long a = 0; a <= A_END; a += A_INC) {
 		printf("Testing sqrt with %ld\n", a);
 		if (testSqrt(a)) {
 			nSuccess++;
@@ -1418,7 +1468,7 @@ bool ArbNum::testAll() {
 		}
 	}
 
-	for (a = 0; a <= 100; a++) {
+	for (long a = 0; a <= 100; a++) {
 		printf("Testing isPrime with %ld\n", a);
 		if (testIsPrime(a)) {
 			nSuccess++;
@@ -1429,7 +1479,7 @@ bool ArbNum::testAll() {
 	}
 
 	printf("Testing factorials\n");
-	for (a = 1; a < 13; a++) {
+	for (long a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
 			nSuccess++;
 		}
