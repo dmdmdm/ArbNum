@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -1268,7 +1268,7 @@ void ArbNum::makeTestValues(const long start, const long end, const long inc, st
 		}
 
 		// Reverse sort
-		std::sort(values.begin(), values.end(), std::greater{});
+		std::sort(values.begin(), values.end(), std::greater<>());
 		(void) std::unique(values.begin(), values.end());
 	}
 }
