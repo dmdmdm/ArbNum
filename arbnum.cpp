@@ -549,9 +549,11 @@ Unsigned Unsigned::gcd(const Unsigned &a, const Unsigned &b) {
 	return gcd(b % a, a);
 }
 
-// Lowest Common Multiple
+// Lowest Common Multiple (known as Lowest Common Denominator when adding fractions)
 Unsigned Unsigned::lcm(const Unsigned &a, const Unsigned &b) {
-	return (a * b) / gcd(a, b);
+	const Unsigned denom = gcd(a, b);
+	if (denom.isZero()) return denom;
+	return (a * b) / denom;
 }
 
 // Square root - Newton's method
@@ -907,7 +909,9 @@ ArbNum ArbNum::gcd(const ArbNum &a, const ArbNum &b) {
 }
 
 ArbNum ArbNum::lcm(const ArbNum &a, const ArbNum &b) {
-	return (a * b) / gcd(a, b);
+	const ArbNum denom = gcd(a, b);
+	if (denom.isZero()) return denom;
+	return (a * b) / denom;
 }
 
 ArbNum ArbNum::sqrt(const ArbNum &a) {
@@ -1168,7 +1172,9 @@ bool ArbNum::testGcd(const long a, const long b) {
 }
 
 long ArbNum::lcmLong(const long a, const long b) {
-	return (a * b) / gcdLong(a, b);
+	const long denom = gcdLong(a, b);
+	if (denom == 0) return denom;
+	return (a * b) / denom;
 }
 
 bool ArbNum::testLcm(const long a, const long b) {
