@@ -2,8 +2,7 @@
 // Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
-#ifndef BC_TOKENIZER_H
-#define BC_TOKENIZER_H
+#pragma once
 
 #include <string>
 
@@ -53,5 +52,3 @@ class Tokenizer {
   Token getOperatorToken() { return getToken(EXPECT_OPERATOR); }
   void ungetToken(const Token& tok);
 };
-
-#endif
