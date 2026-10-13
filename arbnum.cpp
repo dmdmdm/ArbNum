@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -1051,6 +1051,10 @@ long long ArbNum::toLongLong() const {
 #else
 	return atoll(toString().c_str());
 #endif
+}
+
+double ArbNum::toDouble() const {
+	return atof(toString().c_str());
 }
 
 int ArbNum::compare(const ArbNum &a, const ArbNum &b) {
