@@ -1,9 +1,8 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
-#ifndef ARBNUM_H
-#define ARBNUM_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -242,5 +241,3 @@ inline ArbNum operator/(const ArbNum &a, const ArbNum &b) { return ArbNum::divid
 inline ArbNum operator%(const ArbNum &a, const ArbNum &b) { return ArbNum::mod(a, b); }
 inline ArbNum operator^(const ArbNum &a, const ArbNum &b) { return ArbNum::pow(a, b); }
 inline ArbNum operator!(const ArbNum &a) { return ArbNum::doNot(a); }
-
-#endif
