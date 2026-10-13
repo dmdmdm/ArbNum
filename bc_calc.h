@@ -1,9 +1,8 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
-#ifndef BC_CALC_H
-#define BC_CALC_H
+#pragma once
 
 #include "arbnum.h"
 #include "bc_tokenizer.h"
@@ -19,5 +18,3 @@ class Calc {
   Calc() {}
   void run(const char*);
 };
-
-#endif
