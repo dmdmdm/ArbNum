@@ -185,6 +185,7 @@ public:
 	int toInt() const;
 	long toLong() const;
 	long long toLongLong() const;
+	double toDouble() const;
 
 	ArbNum operator+=(const ArbNum &other) { add(other); return *this; }
 	ArbNum operator-=(const ArbNum &other) { subtract(other); return *this; }
