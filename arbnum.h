@@ -9,6 +9,7 @@
 
 typedef enum { AN_QUIET, AN_LOG } ArbNum_Logging;
 void ArbNum_setLogging(const ArbNum_Logging);
+ArbNum_Logging ArbNum_getLogging();
 
 class UnsignedDivide;
 class ArbNumDivide;
