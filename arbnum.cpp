@@ -23,6 +23,10 @@ void ArbNum_setLogging(const ArbNum_Logging log) {
 	s_Logging = log;
 }
 
+ArbNum_Logging ArbNum_getLogging() {
+    return s_Logging;
+}
+
 //------------------------------------------------------------------------------
 // Unsigned
 
