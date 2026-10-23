@@ -117,6 +117,21 @@ bool Unsigned::isEven() const {
 	return ::isEven(lastDigit);
 }
 
+int Unsigned::compare(const Unsigned &aIn, const Unsigned &bIn) {
+	const Unsigned *pA = &aIn;
+	const Unsigned *pB = &bIn;
+	Unsigned padded;
+
+	padShorterNumber(pA, pB, padded);
+
+	for (size_t i = 0; i < pA->length(); i++) {
+		if (pA->mDigits[i] < pB->mDigits[i]) return -1;
+		if (pA->mDigits[i] > pB->mDigits[i]) return 1;
+	}
+
+	return 0;
+}
+
 void Unsigned::trim() {
 	digits_t::iterator lastZero;
 	bool hits = false;
@@ -659,21 +674,6 @@ void Unsigned::pow(const Unsigned &other) {
 	set(pow(*this, other));
 }
 
-int Unsigned::compare(const Unsigned &aIn, const Unsigned &bIn) {
-	const Unsigned *pA = &aIn;
-	const Unsigned *pB = &bIn;
-	Unsigned padded;
-
-	padShorterNumber(pA, pB, padded);
-
-	for (size_t i = 0; i < pA->length(); i++) {
-		if (pA->mDigits[i] < pB->mDigits[i]) return -1;
-		if (pA->mDigits[i] > pB->mDigits[i]) return 1;
-	}
-
-	return 0;
-}
-
 Unsigned Unsigned::operator++(int) {
 	add(s_UnsignedOne);
 	return *this;
@@ -777,6 +777,20 @@ ArbNum ArbNum::abs(const ArbNum &a) {
 
 ArbNum ArbNum::sign(const ArbNum &a) {
 	return a.mSign;
+}
+
+int ArbNum::compare(const ArbNum &a, const ArbNum &b) {
+	if (a.mSign < b.mSign) return -1;
+	if (a.mSign > b.mSign) return 1;
+
+	if (a.isNegative()) {
+		// Both are negative
+		return Unsigned::compare(b.mUnsigned, a.mUnsigned);
+	}	
+	else {
+		// Both are postive
+		return Unsigned::compare(a.mUnsigned, b.mUnsigned);
+	}
 }
 
 ArbNum ArbNum::add(const ArbNum &a, const ArbNum &b) {
@@ -1059,20 +1073,6 @@ long long ArbNum::toLongLong() const {
 
 double ArbNum::toDouble() const {
 	return atof(toString().c_str());
-}
-
-int ArbNum::compare(const ArbNum &a, const ArbNum &b) {
-	if (a.mSign < b.mSign) return -1;
-	if (a.mSign > b.mSign) return 1;
-
-	if (a.isNegative()) {
-		// Both are negative
-		return Unsigned::compare(b.mUnsigned, a.mUnsigned);
-	}	
-	else {
-		// Both are postive
-		return Unsigned::compare(a.mUnsigned, b.mUnsigned);
-	}
 }
 
 ArbNum ArbNum::operator++(int) {
