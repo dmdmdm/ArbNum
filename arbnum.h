@@ -48,6 +48,8 @@ public:
 	bool isOdd() const;
 	bool isEven() const;
 
+	static int compare(const Unsigned &, const Unsigned &);
+
 	inline static void addMutable(Unsigned &, Unsigned &);
 	static Unsigned add(const Unsigned &, const Unsigned &);
 
@@ -68,7 +70,6 @@ public:
 	static Unsigned sqrt(const Unsigned &);
 	static Unsigned random(const Unsigned &);
 	static Unsigned isPrime(const Unsigned &);
-	static int compare(const Unsigned &, const Unsigned &);
 
 	void add(const Unsigned &);
 	void subtract(const Unsigned &);
@@ -156,6 +157,7 @@ public:
 
 	static ArbNum abs(const ArbNum &);
 	static ArbNum sign(const ArbNum &);
+	static int compare(const ArbNum &, const ArbNum &);
 	static ArbNum add(const ArbNum &, const ArbNum &);
 	static ArbNum subtract(const ArbNum &, const ArbNum &);
 	static ArbNum multiply(const ArbNum &, const ArbNum &);
@@ -172,7 +174,6 @@ public:
 	static ArbNum sqrt(const ArbNum &);
 	static ArbNum random(const ArbNum &);
 	static ArbNum isPrime(const ArbNum &);
-	static int compare(const ArbNum &, const ArbNum &);
 
 	void set(const ArbNum &);
 	void add(const ArbNum &);
