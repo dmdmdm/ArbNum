@@ -815,7 +815,6 @@ ArbNum ArbNum::add(const ArbNum &a, const ArbNum &b) {
 		// Both negative => will stay negative
 		result.mkNegative();
 		result.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
-
 	}
 	else {
 		if (s_Logging == AN_LOG) {
