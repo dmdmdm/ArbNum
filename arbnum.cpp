@@ -632,13 +632,13 @@ Unsigned Unsigned::random(const Unsigned &wantedDigits) {
 
 // By Soma Mbadiwe on https://stackoverflow.com/questions/15743192/check-if-number-is-prime-number
 Unsigned Unsigned::isPrime(const Unsigned &a) {
-	if (a <= 1) return false;
-	if (a == 2 || a == 3 || a == 5) return true;
+	if (a <= s_UnsignedOne) return false;
+	if (a.isTwo() || a == 3 || a == 5) return true;
 	if (a.isEven() || a % 3 == 0 || a % 5 == 0) return false;
 
 	const Unsigned boundary = sqrt(a);
 	for (Unsigned i = 6; i <= boundary; i += 6) {
-		if (a % (i + 1) == 0 || a % (i + 5) == 0) {
+		if (a % (i + s_UnsignedOne) == 0 || a % (i + 5) == 0) {
 			return false;
 		}
 	}
