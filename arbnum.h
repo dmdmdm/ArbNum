@@ -128,7 +128,7 @@ class ArbNum {
 	bool isZero() const { return mUnsigned.isZero(); }
 	bool isPositiveOrZero() const { return mSign >= 0; }
 	bool isNegativeOrZero() const { return mSign <= 0; }
-	bool isPostive() const { return mSign > 0 && !isZero(); }
+	bool isPositive() const { return mSign > 0 && !isZero(); }
 	bool isNegative() const { return mSign < 0 && !isZero(); }
 
 	void mkNegative() { mSign = -1; }
