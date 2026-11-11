@@ -13,15 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: DNS and HTTP diagnostics
+    - name: Pin Ubuntu mirror
       run: |
-          cat /etc/resolv.conf
-          for h in security.ubuntu.com azure.archive.ubuntu.com google.com; do
-            echo "--- $h"
-            getent hosts $h || echo "DNS lookup failed for $h (exit $?)"
-          done
-          curl -sS -o /dev/null -w "%{http_code}\n" --max-time 20 http://security.ubuntu.com/ubuntu/ || true
-          curl -sS -o /dev/null -w "%{http_code}\n" --max-time 20 https://google.com || true
+          IP=$(dig @8.8.8.8 +short security.ubuntu.com | head -n1)
+          echo "$IP security.ubuntu.com" | sudo tee -a /etc/hosts
+          sudo apt-get update
     - name: install dependencies
       run: sudo apt-get install -y libreadline-dev 
     - name: make
