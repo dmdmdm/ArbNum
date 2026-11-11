@@ -61,6 +61,24 @@ bool hasContent(const char *s) {
 	return ! isSpace(s);
 }
 
+void safe_strcpy(char *dest, const char *src, const size_t size) {
+#ifdef _MSC_VER
+	lstrcpyn(dest, src, size);
+#elif defined(_WIN32)
+	lstrcpyn(dest, src, size);
+#elif defined(__APPLE__) && defined(__MACH__)
+	strlcpy(dest, src, size);
+#elif defined(__linux__)
+	strlcpy(dest, src, size);
+#elif defined(__FreeBSD__)
+	strlcpy(dest, src, size);
+#elif defined(__unix__)
+	strlcpy(dest, src, size);
+#else
+#error "Unknown operating system"
+#endif
+}
+
 char *shuffle(char *dest, const char *src) {
 	return (char *) memmove(dest, src, strlen(src) + sizeof(char));
 }
