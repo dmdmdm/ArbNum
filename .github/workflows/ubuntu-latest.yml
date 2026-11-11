@@ -13,11 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: Set DNS resolvers
-      run: |
-       sudo rm -f /etc/resolv.conf
-       echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
-       echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
+    - name: List DNS resolvers
+      run: cat /etc/resolv.conf
     - name: install dependencies
       run: sudo apt-get install -y libreadline-dev 
     - name: make
