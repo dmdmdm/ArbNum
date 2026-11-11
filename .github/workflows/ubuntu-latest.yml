@@ -13,11 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: Pin Ubuntu mirror
+    - name: Compare DNS resolvers
       run: |
-          IP=$(dig @8.8.8.8 +short security.ubuntu.com | head -n1)
-          echo "$IP security.ubuntu.com" | sudo tee -a /etc/hosts
-          sudo apt-get update
+          sudo apt-get install -y dnsutils >/dev/null 2>&1
+          echo "--- via systemd stub"
+          dig +short security.ubuntu.com || true
+          echo "--- via 8.8.8.8"
+          dig @8.8.8.8 +short security.ubuntu.com || true
+          echo "--- via Azure resolver"
+          dig @168.63.129.16 +short security.ubuntu.com || true
     - name: install dependencies
       run: sudo apt-get install -y libreadline-dev 
     - name: make
