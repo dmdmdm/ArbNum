@@ -373,19 +373,6 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 
     // Scale both numbers to whole integers by finding decimal places
 	convertToZeroExponent(a1, b1);
-	/*
-#ifdef USE_INTEGER_FOR_EXP
-	const int places = std::max(a1.mExp.toInt(), b1.mExp.toInt());
-#else
-	const int places = std::max(a1.mExp, b1.mExp);
-#endif
-	if (places > 0) {
-		// Using int pow() reduces the possible precision a bit.
-		// But its faster and we don't want to rely on the higher level Scaled::pow() here in Scaled::divide()
-		a1 *= std::pow(10, places);
-		b1 *= std::pow(10, places);
-	}
-	*/
 
 #ifdef DIVIDE_WITH_UNSIGNED
 	const Unsigned a = a1.toUnsigned();
