@@ -6,9 +6,10 @@
 #include "stdafx.h"
 #endif
 
+#include <stdio.h>
 #include "arbnum.h"
 
-int main() {
+void example_use_of_arbnum_main() {
 	ArbNum a("90000000000");
 	ArbNum b("80000000000");
 	ArbNum c = a * b;

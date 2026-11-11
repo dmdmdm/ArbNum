@@ -4,17 +4,17 @@
 
 #pragma once
 
-#include "arbnum.h"
+#include "scaled.h"
 #include "bc_tokenizer.h"
 
 class Calc {
-  ArbNum functionCall(Token, Tokenizer&);
-  void help();
-  void license();
-  ArbNum simpleExpr(Tokenizer&);
-  ArbNum expr(Tokenizer&);
+	Scaled functionCall(Token, Tokenizer &);
+	void help();
+	void license();
+	Scaled simpleExpr(Tokenizer &);
+	Scaled expr(Tokenizer &);
 
- public:
-  Calc() {}
-  void run(const char*);
+public:
+	Calc() { }
+	void run(const char *);
 };

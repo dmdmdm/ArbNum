@@ -1,5 +1,5 @@
 // A simple arbitrary precision library and interactive text program
-// Copyright © 2020, Dave McKellar
+// Copyright Â© 2020, Dave McKellar
 // Mozilla Public Licensed
 
 #ifdef _MSC_VER
@@ -21,16 +21,16 @@ struct Function {
 
 // Alphabetical order
 static const Function s_Funcs[] = {
-	{"abs",			1, (void*) ArbNum::abs},
-	{"factorial",	1, (void*) ArbNum::factorial},
-	{"gcd",			2, (void*) ArbNum::gcd},
-	{"isprime",		1, (void*) ArbNum::isPrime},
-	{"lcm",			2, (void*) ArbNum::lcm},
-	{"max",			2, (void*) ArbNum::max},
-	{"min",			2, (void*) ArbNum::min},
-	{"random", 		1, (void*) ArbNum::random},
-	{"sign",			1, (void*) ArbNum::sign},
-	{"sqrt",			1, (void*) ArbNum::sqrt},
+	{"abs",			1, (void*) Scaled::abs},
+	{"factorial",	1, (void*) Scaled::factorial},
+	{"gcd",			2, (void*) Scaled::gcd},
+	{"isprime",		1, (void*) Scaled::isPrime},
+	{"lcm",			2, (void*) Scaled::lcm},
+	{"max",			2, (void*) Scaled::max},
+	{"min",			2, (void*) Scaled::min},
+	{"random", 		1, (void*) Scaled::random},
+	{"sign",			1, (void*) Scaled::sign},
+	{"sqrt",			1, (void*) Scaled::sqrt},
 	{NULL,			0, NULL}
 };
 
@@ -53,11 +53,11 @@ static const std::string getFuncs() {
 	return result;
 }
 
-typedef ArbNum (*func1_t)(ArbNum &);
-typedef ArbNum (*func2_t)(ArbNum &, ArbNum &);
+typedef Scaled (*func1_t)(Scaled &);
+typedef Scaled (*func2_t)(Scaled &, Scaled &);
 
-ArbNum Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
-	ArbNum result;
+Scaled Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
+	Scaled result;
 
 	const Function *pEntry = findFunc(funcName.string.c_str());
 	if (pEntry == NULL) {
@@ -65,18 +65,24 @@ ArbNum Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
 		result.mkError();
 		return result;
 	}
+	// printf("functionCall: found %s\n", funcName.string.c_str()); // TEMP
 
 	if (pEntry->params == 1) {
-		ArbNum expr1 = expr(tokenizer);
-		if (!expr1.isNormal()) return expr1;
+		// printf("calling 1 param func\n"); // TEMP
+		Scaled expr1 = expr(tokenizer);
+		if (!expr1.isNormal()) {
+			printf("functionCall: expr1 is not normal\n");
+			return expr1;
+		}
 		const func1_t pFunc1 = (func1_t)pEntry->func;
 		result = (*pFunc1)(expr1);
+		// printf("result=%s\n", result.toString().c_str()); // TEMP
 	}
 	else if (pEntry->params == 2) {
-		ArbNum expr1 = expr(tokenizer);
+		Scaled expr1 = expr(tokenizer);
 		if (!expr1.isNormal()) return expr1;
 		const Token comma = tokenizer.getToken();
-		ArbNum expr2 = expr(tokenizer);
+		Scaled expr2 = expr(tokenizer);
 		if (!expr2.isNormal()) return expr2;
 		const func2_t pFunc2 = (func2_t)pEntry->func;
 		result = (*pFunc2)(expr1, expr2);
@@ -107,8 +113,10 @@ void Calc::help() {
 	printf("3 * 4 <enter>\n");
 	printf("100 / 5 <enter>\n");
 	printf("102 %% 5 <enter>\n");
-	printf("2 ^ 10 <enter>\n\n");
-	printf("Integers of any length are supported, eg 2 ^ 100\n");
+	printf("2.1 ^ 10 <enter>\n");
+	printf("pi <enter>\n");
+	printf("\n");
+	printf("Numbers of any length are supported, eg 2 ^ 100\n");
 	printf("String things together: 2 + 5 + 5 * 80000000000000000000000000\n");
 	printf("Use brackets: 1 + (2 * 3)\n");
 	printf("Built-in functions: %s\n", getFuncs().c_str());
@@ -130,8 +138,8 @@ void Calc::license() {
 //------------------------------------------------------------------------------
 // Calc main
 
-ArbNum Calc::simpleExpr(Tokenizer &tokenizer) {
-	ArbNum a, ignore, err;
+Scaled Calc::simpleExpr(Tokenizer &tokenizer) {
+	Scaled a, ignore, err;
 
 	ignore.mkIgnore();
 	err.mkError();
@@ -143,6 +151,7 @@ ArbNum Calc::simpleExpr(Tokenizer &tokenizer) {
 		a.saveNumber(tok1.string.c_str());
 	}
 	else if (tok1.type == Token::T_WORD) {
+		// Alphabetical order
 		if (tok1.string == "exit") {
 			exit(0);
 			return ignore;
@@ -155,8 +164,12 @@ ArbNum Calc::simpleExpr(Tokenizer &tokenizer) {
 			license();
 			return ignore;
 		}
+		else if (tok1.string == "pi") {
+			Scaled pi("pi");
+			return pi;
+		}
 		else if (tok1.string == "tests") {
-			ArbNum::testAll();
+			Scaled::testAll();
 			return ignore;
 		}
 
@@ -178,7 +191,7 @@ ArbNum Calc::simpleExpr(Tokenizer &tokenizer) {
 		}
 	}
 	else if (tok1.isBang()) {	// ! <expr>
-		const ArbNum b = expr(tokenizer);
+		const Scaled b = expr(tokenizer);
 		if (!b.isNormal()) {
 			fprintf(stderr, "Expected ! <expr>\n");
 			return err;
@@ -193,8 +206,8 @@ ArbNum Calc::simpleExpr(Tokenizer &tokenizer) {
 	return a;
 }
 
-ArbNum Calc::expr(Tokenizer &tokenizer) {
-	ArbNum a = simpleExpr(tokenizer);
+Scaled Calc::expr(Tokenizer &tokenizer) {
+	Scaled a = simpleExpr(tokenizer);
 	if (!a.isNormal()) return a;
 
 	for (;;) {
@@ -212,7 +225,7 @@ ArbNum Calc::expr(Tokenizer &tokenizer) {
 			return a;
 		}
 
-		const ArbNum b = simpleExpr(tokenizer);
+		const Scaled b = simpleExpr(tokenizer);
 		if (!b.isNormal()) return a;
 
 		if (tok1.string[0] == '+') {
@@ -246,7 +259,7 @@ ArbNum Calc::expr(Tokenizer &tokenizer) {
 void Calc::run(const char *line) {
 	Tokenizer tokenizer(line);
 
-	const ArbNum num = expr(tokenizer);
+	const Scaled num = expr(tokenizer);
 
 	if (num.isNormal()) {
 		printf("%s\n", num.toString().c_str());

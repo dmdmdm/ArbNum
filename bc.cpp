@@ -2,78 +2,78 @@
 // Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
+#ifdef _MSC_VER
+#include "stdafx.h"
+#endif
+
 #include <stdio.h>
 #ifdef __linux__
-#include <readline/history.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 #endif
 #include <string.h>
-#include <time.h>
-
-#include "arbnum.h"
+#include "util.h"
+#include "scaled.h"
 #include "bc_calc.h"
 
 static void usage() {
-  fprintf(stderr,
-          "Usage: bc\n"
-          "\n"
-          "bc - An arbitrary precision calculator language\n"
-          "\n"
-          "Enter 'help' at the program's command line for help\n"
-          "\n"
-          "Copyright (c) 2020 Dave McKellar\n");
-  exit(1);
+	fprintf(stderr, "Usage: bc\n"
+		"\n"
+		"bc - An arbitrary precision calculator language\n"
+		"\n"
+		"Enter 'help' at the program's command line for help\n"
+		"\n"
+		"Copyright (c) 2020 Dave McKellar\n");
+	exit(1);
 }
 
-int main(const int argc, char* argv[]) {
-  if (argc > 1) {
-    if (strcmp(argv[1], "-?") == 0) usage();
+int main(const int argc, char *argv[]) {
+	if (argc > 1) {
+		if (strcmp(argv[1], "-?") == 0) usage();
 
-    if (strcmp(argv[1], "-t") == 0) {
-      const time_t start = time(NULL);
-      const bool result = ArbNum::testAll();
-      const time_t duration = time(NULL) - start;
-      printf("Took %ld seconds\n", (long)duration);
-      exit(!result);
-    }
+		if (strcmp(argv[1], "-t") == 0) {
+			const bool result = Scaled::testAll();
+			exit(!result);
+		}
 
-    usage();
-  }
+		usage();
+	}
 
 #ifdef __linux__
-  char* line;
+	char	*line;
 #else
-  char line[1024 * 5];
-  char* p;
+	char	line[1024 * 5];
+	char	*p;
 #endif
 
-  Calc calc;
-  for (;;) {
+	Calc	calc;
+	for (;;) {
 #ifdef __linux__
-    if ((line = readline("bc> ")) == NULL) break;
-    if (*line == '\0') continue;
-    add_history(line);
+		if ((line = readline("bc> ")) == NULL) break;
+		if (*line == '\0') continue;
+		add_history(line);
 #else
-    printf("bc> ");
-    if (fgets(line, sizeof(line), stdin) == NULL) break;
-    if ((p = strchr(line, '\r')) != NULL) *p = '\0';
-    if ((p = strchr(line, '\n')) != NULL) *p = '\0';
+		printf("bc> ");
+		if (fgets(line, sizeof(line), stdin) == NULL) break;
+		if ((p = strchr(line, '\r')) != NULL) *p = '\0';
+		if ((p = strchr(line, '\n')) != NULL) *p = '\0';
 #endif
 
-    const time_t start = time(NULL);
+		const long start = currentMillis();
 
-    calc.run(line);
+		calc.run(line);
 
 #ifdef __linux__
-    free(line);
+		free(line);
 #endif
 
-    const time_t duration = time(NULL) - start;
-    if (duration > 1) {
-      printf("Took %ld seconds\n", (long)duration);
-    }
-  }
+		const long durationMs = currentMillis() - start;
+		const double durationSeconds = durationMs / 1000.0;
+		if (durationSeconds > 1) {
+			printf("Took %.1f seconds\n", durationSeconds);
+		}
+	}
 #ifdef __linux__
-  putchar('\n');
+	putchar('\n');
 #endif
 }
