@@ -148,7 +148,7 @@ Scaled::Scaled(const double in) {
 	saveNumber(std::format("{:.17g}", in).c_str());
 #else
 	char buf[ARBNUM_BUF_SIZE];
-	_snprintf(buf, sizeof(buf), "%.17g", in);
+	snprintf(buf, sizeof(buf), "%.17g", in);
 	saveNumber(buf);
 #endif
 }
