@@ -15,8 +15,11 @@ jobs:
     - uses: actions/checkout@v5
     - name: List DNS resolvers
       run: cat /etc/resolv.conf
-    - name: Check internet access
-      run: ping -c 3 google.com
+    - name: HTTP connectivity test
+      run: |
+          getent hosts security.ubuntu.com
+          curl -v --max-time 20 http://security.ubuntu.com/ubuntu/ -o /dev/null
+          curl -v --max-time 20 https://google.com -o /dev/null
     - name: install dependencies
       run: sudo apt-get install -y libreadline-dev 
     - name: make
