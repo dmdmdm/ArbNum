@@ -78,11 +78,7 @@ void Scaled::saveNumber(const char *in) {
 	// 1.234e+4 - scientific notation with decimal
 	
 	char buf[ARBNUM_BUF_SIZE];
-#ifdef _MSC_VER
-	lstrcpyn(buf, in, sizeof(buf));
-#else
-	strlcpy(buf, in, sizeof(buf));
-#endif
+	safe_strcpy(buf, in, sizeof(buf));
 	char *p;
 
 	// Has an "e"?
@@ -882,7 +878,7 @@ bool Scaled::testAll() {
 	std::vector<double> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
 	makeTestValues(B_START, B_END, B_INC, b_values);
-	printf("Number of tests per function=%ld\n", a_values.size() * b_values.size());
+	printf("Number of tests per function=%ld\n", (long)a_values.size() * b_values.size());
 
 #ifndef ONLY_TEST_DIVIDE
 	for (double a : a_values) {
