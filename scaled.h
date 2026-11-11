@@ -18,6 +18,7 @@ class Scaled {
 	Integer mExp; // Exponent (Value = mUnscaled * 10 ^ -mExp)
 #else
 	int mExp; // Exponent (Value = mUnscaled * 10 ^ -mExp)
+	// Using an int for the exponent means its not unlimited.
 #endif
 
 	void clear();
@@ -64,7 +65,8 @@ public:
 	Unsigned toUnsigned() const; // Loses sign and decimal part 
 	int toInt() const; // Loses precision and decimal part
 
-	static void convertToSameExponent(Scaled &, Scaled &b);
+	static void convertToSameExponent(Scaled &, Scaled &);
+	static void convertToZeroExponent(Scaled &, Scaled &); // Whole numbers
 	static Scaled abs(const Scaled &);
 	static Scaled sign(const Scaled &);
 	static int compare(const Scaled &, const Scaled &);

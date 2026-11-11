@@ -78,7 +78,11 @@ void Scaled::saveNumber(const char *in) {
 	// 1.234e+4 - scientific notation with decimal
 	
 	char buf[ARBNUM_BUF_SIZE];
-	safe_strcpy(buf, in, sizeof(buf));
+#ifdef _MSC_VER
+	lstrcpyn(buf, in, sizeof(buf));
+#else
+	strlcpy(buf, in, sizeof(buf));
+#endif
 	char *p;
 
 	// Has an "e"?
@@ -288,6 +292,18 @@ void Scaled::convertToSameExponent(Scaled &a, Scaled &b) {
 	b.mExp += a.mExp;
 }
 
+void Scaled::convertToZeroExponent(Scaled &a, Scaled &b) {
+#ifdef USE_INTEGER_FOR_EXP
+	const int places = std::max(a.mExp.toInt(), b.mExp.toInt());
+#else
+	const int places = std::max(a.mExp, b.mExp);
+#endif
+	if (places > 0) {
+		a *= std::pow(10, places);
+		b *= std::pow(10, places);
+	}
+}
+
 Scaled Scaled::add(const Scaled &aIn, const Scaled &bIn) {
 	Scaled a(aIn);
 	Scaled b(bIn);
@@ -356,6 +372,8 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 	Scaled b1 = Scaled::abs(divisorIn);
 
     // Scale both numbers to whole integers by finding decimal places
+	convertToZeroExponent(a1, b1);
+	/*
 #ifdef USE_INTEGER_FOR_EXP
 	const int places = std::max(a1.mExp.toInt(), b1.mExp.toInt());
 #else
@@ -367,6 +385,7 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 		a1 *= std::pow(10, places);
 		b1 *= std::pow(10, places);
 	}
+	*/
 
 #ifdef DIVIDE_WITH_UNSIGNED
 	const Unsigned a = a1.toUnsigned();
