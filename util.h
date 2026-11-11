@@ -30,6 +30,8 @@ char *terminatingNul(char *);
 bool isSpace(const char *);
 bool hasContent(const char *);
 
+void safe_strcpy(char *dest, const char *src, const size_t size);
+
 char *shuffle(char *dest, const char *src);
 
 //
