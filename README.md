@@ -11,22 +11,24 @@ I tired to do arbitrary signed integer math as clearly as possible.  No crazy op
 - with integers of any length
 
 # Files
-- **arbnum.cpp** and **arbnum.h** perform the math.  You can drop them into another project.
+- **unsigned.cpp** implements class Unsigned to perform arbitrary precision unsigned integer math.
+- **integer.cpp** implements class Integer to perform arbitrary precision signed integer math.
+- **scaled.cpp** implements class Scaled perform arbitrary precision real numbers math.
 - **bc_tokeniser.cpp** and **bc_tokenizer.h** break the input into text tokens.
-- **bc_calc.cpp** and **bc_calc.h** perform the math on the token using ArbNum.
+- **bc_calc.cpp** and **bc_calc.h** perform the math on the token using Scaled
 - **bc.cpp** is just the main
 
 # More details
 There is a testAll() function which tests nearly everything in about 20 seconds.
 
-There is a class called Unsigned which performs arbitrary precison unsigned integer operations.
+There is a class called Unsigned which performs arbitrary precision unsigned integer operations.
 
-Class ArbNum uses Unsigned to do signed arbitrary precison signed integer operations.
+Class Scaled uses Integer to do signed arbitrary precision signed integer operations.
 For example: it turns 10 + (-20) into 20 - 10 and calls Unsigned.subtract(20, 10)
 
-Has C++ operator overloading so you can to do: a + b * c where they are ArbNum's.
+Has C++ operator overloading so you can to do: a + b * c where they are Scaled's.
 You can construct with string, int, long and it has methods toString(), toInt(), toLong() to get values out.
-See file example_use_of_arbnum.cpp
+See file example_use_of_scaled.cpp
 
 Compiles on Ubuntu, macOS, Windows
 Requires readline-devel package on Fedora
