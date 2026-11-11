@@ -13,13 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: List DNS resolvers
-      run: cat /etc/resolv.conf
-    - name: HTTP connectivity test
+    - name: DNS and HTTP diagnostics
       run: |
-          getent hosts security.ubuntu.com
-          curl -v --max-time 20 http://security.ubuntu.com/ubuntu/ -o /dev/null
-          curl -v --max-time 20 https://google.com -o /dev/null
+          cat /etc/resolv.conf
+          for h in security.ubuntu.com azure.archive.ubuntu.com google.com; do
+            echo "--- $h"
+            getent hosts $h || echo "DNS lookup failed for $h (exit $?)"
+          done
+          curl -sS -o /dev/null -w "%{http_code}\n" --max-time 20 http://security.ubuntu.com/ubuntu/ || true
+          curl -sS -o /dev/null -w "%{http_code}\n" --max-time 20 https://google.com || true
     - name: install dependencies
       run: sudo apt-get install -y libreadline-dev 
     - name: make
