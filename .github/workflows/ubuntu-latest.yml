@@ -13,17 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-#    - name: Resolve and pin Ubuntu mirror via DNS-over-HTTPS
-#      run: |
-#          IP=$(curl -s -H 'accept: application/dns-json' \
-#            'https://dns.google/resolve?name=security.ubuntu.com&type=A' \
-#            | jq -r '.Answer[] | select(.type==1) | .data' | head -n1)
-#          echo "Resolved: $IP"
-#          test -n "$IP" && echo "$IP security.ubuntu.com" | sudo tee -a /etc/hosts
-#         sudo apt-get -o Acquire::Retries=3 update
     - name: Install dependencies
       run: |
-         sudo apt-get update
+         sudo apt-get -o Acquire::Retries=3 update
          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libreadline-dev
     - name: make
       run: make
