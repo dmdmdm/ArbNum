@@ -65,7 +65,7 @@ void safe_strcpy(char *dest, const char *src, const size_t size) {
 #ifdef _MSC_VER
 	lstrcpyn(dest, src, size);
 #elif defined(_WIN32)
-	lstrcpyn(dest, src, size);
+	strcpyn(dest, src, size); // Not lstrcpyn()
 #elif defined(__APPLE__) && defined(__MACH__)
 	strlcpy(dest, src, size);
 #elif defined(__linux__)
