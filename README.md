@@ -11,6 +11,7 @@ I tired to do arbitrary signed integer math as clearly as possible.  No crazy op
 - with integers of any length
 
 # Files
+- **util.cpp** are some utility functions
 - **unsigned.cpp** implements class Unsigned to perform arbitrary precision unsigned integer math.
 - **integer.cpp** implements class Integer to perform arbitrary precision signed integer math.
 - **scaled.cpp** implements class Scaled perform arbitrary precision real numbers math.
@@ -23,8 +24,9 @@ There is a testAll() function which tests nearly everything in about 20 seconds.
 
 There is a class called Unsigned which performs arbitrary precision unsigned integer operations.
 
-Class Scaled uses Integer to do signed arbitrary precision signed integer operations.
-For example: it turns 10 + (-20) into 20 - 10 and calls Unsigned.subtract(20, 10)
+Class Integer uses Unsigned to do arbitrary precision signed integer options.
+
+Class Scaled uses Integer to do signed arbitrary precision real operations.
 
 Has C++ operator overloading so you can to do: a + b * c where they are Scaled's.
 You can construct with string, int, long and it has methods toString(), toInt(), toLong() to get values out.
