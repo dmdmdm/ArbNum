@@ -13,15 +13,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: Compare DNS resolvers
+    - name: Resolve and pin Ubuntu mirror via DNS-over-HTTPS
       run: |
-          sudo apt-get install -y dnsutils >/dev/null 2>&1
-          echo "--- via systemd stub"
-          dig +short security.ubuntu.com || true
-          echo "--- via 8.8.8.8"
-          dig @8.8.8.8 +short security.ubuntu.com || true
-          echo "--- via Azure resolver"
-          dig @168.63.129.16 +short security.ubuntu.com || true
+          IP=$(curl -s -H 'accept: application/dns-json' \
+            'https://dns.google/resolve?name=security.ubuntu.com&type=A' \
+            | jq -r '.Answer[] | select(.type==1) | .data' | head -n1)
+          echo "Resolved: $IP"
+          test -n "$IP" && echo "$IP security.ubuntu.com" | sudo tee -a /etc/hosts
+          sudo apt-get -o Acquire::Retries=3 update
     - name: install dependencies
       run: sudo apt-get install -y libreadline-dev 
     - name: make
