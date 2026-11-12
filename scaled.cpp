@@ -81,7 +81,7 @@ void Scaled::saveNumber(const char *in) {
 #ifdef _MSC_VER
 	lstrcpyn(buf, in, sizeof(buf));
 #else
-	strlcpy(buf, in, sizeof(buf));
+	safe_strcpy(buf, in, sizeof(buf));
 #endif
 	char *p;
 
@@ -100,7 +100,7 @@ void Scaled::saveNumber(const char *in) {
 
 	// Has a decimal?
 	if ((p = strchr(beforeE, '.')) != nullptr) {
-		const long afterDecimal = strlen(p + 1);
+		const long afterDecimal = (long)strlen(p + 1);
 		shuffle(p, p + 1); // Delete the decimal
 		mUnscaled.saveNumber(buf);
 		mExp = afterDecimal;
@@ -870,7 +870,7 @@ bool Scaled::testAll() {
 	std::vector<double> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
 	makeTestValues(B_START, B_END, B_INC, b_values);
-	printf("Number of tests per function=%ld\n", (long)a_values.size() * b_values.size());
+	printf("Number of tests per function=%ld\n", (long)(a_values.size() * b_values.size()));
 
 #ifndef ONLY_TEST_DIVIDE
 	for (double a : a_values) {

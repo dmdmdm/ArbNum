@@ -537,7 +537,7 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 	UnsignedDivide	result;
 
 	result.quotient.pad(dividend.length());
-	runningDividend.append(UNASSIGNED, dividend.length());
+	runningDividend.append(UNASSIGNED, (long)dividend.length());
 
 	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toInt()) {
