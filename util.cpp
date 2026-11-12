@@ -16,7 +16,7 @@
 
 #ifndef _MSC_VER
 #include <sys/time.h>	// For gettimeofday()
-#include <unistd.h>
+#include <unistd.h>	// For gethostname()
 #endif
 
 #include "util.h"
@@ -44,12 +44,13 @@ void ArbNum_log(const char *format, ...) {
 }
 
 void getHostName(char *host, const size_t size) {
+	host[0] = '\0';
 #ifdef _MSC_VER
 	DWORD dwSize = size;
 	::GetComputerName(host, &dwSize);
 #elif defined(_WIN32) || defined(_WIN64)
-	// eg x86_64-w64-mingw32-g++
-	gethostname(host, size);
+	// x86_64-w64-mingw32-g++
+	// ?
 #elif defined(__APPLE__) && defined(__MACH__)
 	gethostname(host, size);
 #elif defined(__linux__)
