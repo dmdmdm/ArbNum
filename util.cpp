@@ -43,14 +43,29 @@ void ArbNum_log(const char *format, ...) {
 	va_end(ap);
 }
 
+void getHostName(char *host, const size_t size) {
+#ifdef _MSC_VER
+	DWORD dwSize = size;
+	::GetComputerName(host, &dwSize);
+#elif defined(_WIN32) || defined(_WIN64)
+	DWORD dwSize = size;
+	::GetComputerName(host, &dwSize);
+#elif defined(__APPLE__) && defined(__MACH__)
+	gethostname(host, size);
+#elif defined(__linux__)
+	gethostname(host, size);
+#elif defined(__FreeBSD__)
+	gethostname(host, size);
+#elif defined(__unix__)
+	gethostname(host, size);
+#else
+#error "Unknown operating system"
+#endif
+}
+
 bool isHome() {
 	char host[256] = "";
-#ifdef _MSC_VER
-	DWORD dwSize = sizeof(host);
-	::GetComputerName(host, &dwSize);
-#else
-	gethostname(host, sizeof(host));
-#endif
+	getHostName(host, sizeof(host));
 	return strcmp(host, "bolt") == 0 || strcmp(host, "DJM") == 0;
 }
 
