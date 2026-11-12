@@ -59,7 +59,7 @@ int main(const int argc, char *argv[]) {
 		if ((p = strchr(line, '\n')) != NULL) *p = '\0';
 #endif
 
-		const long start = currentMillis();
+		const long startMs = currentMillis();
 
 		calc.run(line);
 
@@ -67,8 +67,7 @@ int main(const int argc, char *argv[]) {
 		free(line);
 #endif
 
-		const long durationMs = currentMillis() - start;
-		const double durationSeconds = durationMs / 1000.0;
+		const double durationSeconds = getDurationSeconds(startMs);
 		if (durationSeconds > 1) {
 			printf("Took %.1f seconds\n", durationSeconds);
 		}
