@@ -9,6 +9,7 @@
 #include <string.h>
 #include <cmath>
 #include <climits>
+#include <map>
 #include <algorithm> // For std::sort()
 
 #if __cplusplus >= 202002L
@@ -74,6 +75,7 @@ void Scaled::saveNumber(const char *in) {
 	// We can have:
 	// 1234 - only digits
 	// 1.234 - decimal and digits
+	// -1.234 - minus, decimal and digits
 	// 1234e-4 - scientific notation with no decimal
 	// 1.234e+4 - scientific notation with decimal
 	
@@ -185,11 +187,6 @@ bool Scaled::isInteger() const {
 	return mExp == 0;
 }
 
-Integer Scaled::getDenom() const {
-	return Integer::pow(s_IntegerTen, mExp);
-	// Not minus mExp because this is the denominator
-}
-
 bool Scaled::isOdd() const {
 	return mUnscaled.isOdd();
 }
@@ -208,13 +205,8 @@ void Scaled::multiplyByTen() {
 }
 
 void Scaled::multiplyByTen(const long exp) {
-	if (mExp == 0) { // This is a possible optimization.  If the exp is already zero, we can just do all the shifts together
-		shiftLeft(exp);
-	}
-	else {
-		for (long i = 0; i < exp; i++) {
-			multiplyByTen();
-		}
+	for (long i = 0; i < exp; i++) {
+		multiplyByTen();
 	}
 }
 
@@ -231,13 +223,18 @@ std::string Scaled::toString() const {
 	else {
 		const long digits = mExp;
 		if (digits < 0) return "negative-exp";
-		std::string str = mUnscaled.toString();
+		std::string str = mUnscaled.toStringNoSign();
 
-		while ((int)str.length() < digits) {
+		while ((long)str.length() < digits) {
 			str = '0' + str;
 		}
 
 		str.insert(str.length() - digits, 1, '.');
+
+		if (mUnscaled.isNegative()) {
+			str = '-' + str;
+		}
+
 		return str;
 	}
 }
@@ -248,8 +245,10 @@ double Scaled::toDouble() const {
 }
 
 Integer Scaled::toInteger() const {
-	if (isInteger()) return mUnscaled;
-	return mUnscaled / getDenom();
+	if (mExp >= mUnscaled.length()) return 0;
+	Integer out(mUnscaled);
+	out.shiftRight(mExp);
+	return out;
 }
 
 Unsigned Scaled::toUnsigned() const {
@@ -288,14 +287,14 @@ void Scaled::convertToSameExponent(Scaled &a, Scaled &b) {
 		return;
 	}
 
-	const Integer aDenom = a.getDenom();
-	const Integer bDenom = b.getDenom();
+	const long aExp = a.mExp;
+	const long bExp = b.mExp;
 
-	a.mUnscaled *= bDenom;
-	a.mExp += b.mExp;
+	a.shiftLeft(bExp);
+	a.mExp += bExp;
 
-	b.mUnscaled *= aDenom;
-	b.mExp += a.mExp;
+	b.shiftLeft(aExp);
+	b.mExp += aExp;
 }
 
 // ie Convert to a whole number
@@ -464,9 +463,22 @@ Scaled Scaled::lcm(const Scaled &a, const Scaled &b) {
 	return (a * b) / denom;
 }
 
-Scaled Scaled::factorial(const Scaled &count) {
-	if (count <= s_ScaledOne) return s_ScaledOne;
-	return factorial(count - s_ScaledOne) * count;
+static std::map<Scaled,Scaled> s_FactorialCache;
+static long s_FactorialCacheHitCount = 0;
+
+Scaled Scaled::factorial(const Scaled &n) {
+	if (n <= s_ScaledOne) return s_ScaledOne;
+
+	auto it = s_FactorialCache.find(n);
+	if (it != s_FactorialCache.end()) {
+		s_FactorialCacheHitCount++;
+		return it->second;
+	}
+
+	const Scaled out = factorial(n - s_ScaledOne) * n;
+
+	s_FactorialCache[n] = out;
+	return out;
 }
 
 // Newton's method
@@ -503,6 +515,24 @@ Scaled Scaled::isPrime(const Scaled &a) {
 	}
 
 	return Integer::isPrime(a.toInteger());
+}
+
+// In radians
+Scaled Scaled::sin(const Scaled &x) {
+	Scaled out;
+	for (Scaled n = 0; n < 9; n++) {
+		out += pow(-1, n) * pow(x, 2 * n + 1) / factorial(2 * n + 1);
+	}
+	return out;
+}
+
+// In radians
+Scaled Scaled::cos(const Scaled &x) {
+	Scaled out;
+	for (Scaled n = 0; n < 9; n++) {
+		out += pow(-1, n) * pow(x, 2 * n) / factorial(2 * n);
+	}
+	return out;
 }
 
 void Scaled::set(const Scaled &other) {
@@ -752,6 +782,24 @@ bool Scaled::testFactorial(const double a) {
 	return eq(dResult, dCorrect);
 }
 
+bool Scaled::testSin(const double a) {
+	const double dResult = Scaled::sin(a).toDouble();
+	const double dCorrect = std::sin(a);
+	if (ne(dResult, dCorrect)) {
+		fprintf(stderr, "sin %g = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	}
+	return eq(dResult, dCorrect);
+}
+
+bool Scaled::testCos(const double a) {
+	const double dResult = Scaled::cos(a).toDouble();
+	const double dCorrect = std::cos(a);
+	if (ne(dResult, dCorrect)) {
+		fprintf(stderr, "cos %g = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	}
+	return eq(dResult, dCorrect);
+}
+
 // We iterate using long's and divide by 10 to get a double which we save.
 // This is rather than interating thru double which can get weird values.
 void Scaled::makeTestValues(const long start, const long end, const long inc, std::vector<double> &values) {
@@ -790,13 +838,10 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 
 bool Scaled::testAll() {
 	/*
-	Scaled a(1234);
-	Scaled b(".0003");
-	printf("a=%s b=%s\n", a.toString().c_str(), b.toString().c_str());
-	printf("a=%s b=%s\n", a.toDump().c_str(), b.toDump().c_str());
-	Scaled::convertToZeroExponent(a, b);
-	printf("a=%s b=%s\n", a.toString().c_str(), b.toString().c_str());
-	printf("a=%s b=%s\n", a.toDump().c_str(), b.toDump().c_str());
+	Scaled a = -1;
+	Scaled b = 5040;
+	Scaled c = a / b;
+	printf("c=%s\n", c.toString().c_str());
 	exit(1);
 	*/
 
@@ -1015,8 +1060,29 @@ bool Scaled::testAll() {
 			nFail++;
 		}
 	}
+
+	printf("Testing sin: 1 to 3\n");
+	for (double a = 1; a < 3; a += .1) {
+		if (testSin(a)) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+
+	printf("Testing cos: 1 to 3\n");
+	for (double a = 1; a < 3; a += .1) {
+		if (testCos(a)) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
 #endif
 	
+	printf("Factorial cache hit count=%ld\n", s_FactorialCacheHitCount);
 	printTestResults("scaledTest", nSuccess, nFail, startMs);
 	return nFail == 0;
 }

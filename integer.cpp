@@ -342,7 +342,7 @@ void Integer::pow(const Integer &other) {
 	set(pow(*this, other));
 }
 
-std::string Integer::toString() const {
+std::string Integer::toString(const SIGN_t eSign) const {
 	std::string out = "";
 
 	if (isIgnore()) {
@@ -352,8 +352,10 @@ std::string Integer::toString() const {
 		return "error";
 	}
 
-	if (mSign < 0) {
-		out += "-";
+	if (eSign == WITH_SIGN) {
+		if (mSign < 0) {
+			out += "-";
+		}
 	}
 
 	out += mUnsigned.toString();
@@ -412,10 +414,6 @@ long long Integer::toLongLong() const {
 
 double Integer::toDouble() const {
 	return atof(toString().c_str());
-}
-
-Unsigned Integer::toUnsigned() const {
-	return mUnsigned;
 }
 
 Integer Integer::operator++(int) {

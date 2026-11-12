@@ -25,6 +25,8 @@ public:
 	void flipSign() { mSign *= -1; }
 	void setSign(const Integer &other) { mSign = other.mSign; }
 	void shiftLeft(const long numberOfDigits) { mUnsigned.shiftLeft(numberOfDigits); }
+	void shiftRight(const long numberOfDigits) { mUnsigned.shiftRight(numberOfDigits); }
+	long length() const { return mUnsigned.length(); }
 
 	bool isZero() const { return mUnsigned.isZero(); }
 	bool isOne() const { return mUnsigned.isOne() && mSign > 0; }
@@ -86,14 +88,17 @@ public:
 	void mod(const Integer &);
 	void pow(const Integer &);
 
-	std::string toString() const;
+	typedef enum { WITH_SIGN, SANS_SIGN } SIGN_t;
+	std::string toString(const SIGN_t) const;
+	std::string toString() const { return toString(WITH_SIGN); }
+	std::string toStringNoSign() const { return toString(SANS_SIGN); }
 	char firstDigitAsChar() const;
 	int firstDigitAsInt() const;
 	int toInt() const; // Loses precision
 	long toLong() const; // Loses precision
 	long long toLongLong() const; // Loses precision
 	double toDouble() const; // Loses precision
-	Unsigned toUnsigned() const;
+	Unsigned toUnsigned() const { return mUnsigned; } // Loses sign
 
 	Integer operator+=(const Integer &other) { add(other); return *this; }
 	Integer operator-=(const Integer &other) { subtract(other); return *this; }

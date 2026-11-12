@@ -48,7 +48,6 @@ public:
 	bool isNegative() const;
 	bool isPositive() const; // Greater than zero
 	bool isInteger() const;
-	Integer getDenom() const;
 	bool isOdd() const;
 	bool isEven() const;
 	void multiplyByTen();
@@ -86,6 +85,8 @@ public:
 	static Scaled sqrt(const Scaled &);
 	static Scaled random(const Scaled &);
 	static Scaled isPrime(const Scaled &);
+	static Scaled sin(const Scaled &);
+	static Scaled cos(const Scaled &);
 
 	void set(const Scaled &);
 	void add(const Scaled &);
@@ -125,6 +126,8 @@ public:
 	static bool testIsPrime(const double);
 	static double factorialDouble(const double);
 	static bool testFactorial(const double);
+	static bool testSin(const double);
+	static bool testCos(const double);
 	static void makeTestValues(const long start, const long end, const long inc, std::vector<double> &);
 	static bool testAll();
 };

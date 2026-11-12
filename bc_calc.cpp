@@ -22,6 +22,7 @@ struct Function {
 // Alphabetical order
 static const Function s_Funcs[] = {
 	{"abs",			1, (void*) Scaled::abs},
+	{"cos",			1, (void*) Scaled::cos},
 	{"factorial",	1, (void*) Scaled::factorial},
 	{"gcd",			2, (void*) Scaled::gcd},
 	{"isprime",		1, (void*) Scaled::isPrime},
@@ -29,8 +30,9 @@ static const Function s_Funcs[] = {
 	{"max",			2, (void*) Scaled::max},
 	{"min",			2, (void*) Scaled::min},
 	{"random", 		1, (void*) Scaled::random},
-	{"sign",			1, (void*) Scaled::sign},
-	{"sqrt",			1, (void*) Scaled::sqrt},
+	{"sign",		1, (void*) Scaled::sign},
+	{"sin",			1, (void*) Scaled::sin},
+	{"sqrt",		1, (void*) Scaled::sqrt},
 	{NULL,			0, NULL}
 };
 
