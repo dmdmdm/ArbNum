@@ -17,14 +17,14 @@ class Integer {
 	Unsigned	mUnsigned;
 
 public:
-	int trimTrailing(const int);
+	long trimTrailing(const long);
 	void clear();
 
 	void mkNegative() { mSign = -1; }
 	void mkPositive() { mSign = 1; }
 	void flipSign() { mSign *= -1; }
 	void setSign(const Integer &other) { mSign = other.mSign; }
-	void appendRight(const int digit, const int numberOfDigits);
+	void shiftLeft(const long numberOfDigits) { mUnsigned.shiftLeft(numberOfDigits); }
 
 	bool isZero() const { return mUnsigned.isZero(); }
 	bool isOne() const { return mUnsigned.isOne() && mSign > 0; }
@@ -34,6 +34,8 @@ public:
 	bool isNegative() const { return mSign < 0 && !isZero(); }
 	bool isOdd() const { return mUnsigned.isOdd(); }
 	bool isEven() const { return mUnsigned.isEven(); }
+	void multiplyByTen() { mUnsigned.multiplyByTen(); }
+	void multiplyByTen(const long exp);
 
 	void saveNumber(const char *);
 
@@ -118,7 +120,6 @@ public:
 	static bool testGcd(const long, const long);
 	static long lcmLong(const long, const long);
 	static bool testLcm(const long, const long);
-	static long sqrtLong(const long);
 	static bool testSqrt(const long);
 	static long isPrimeLong(const long);
 	static bool testIsPrime(const long);

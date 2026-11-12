@@ -100,7 +100,7 @@ void Scaled::saveNumber(const char *in) {
 
 	// Has a decimal?
 	if ((p = strchr(beforeE, '.')) != nullptr) {
-		const int afterDecimal = strlen(p + 1);
+		const long afterDecimal = strlen(p + 1);
 		shuffle(p, p + 1); // Delete the decimal
 		mUnscaled.saveNumber(buf);
 		mExp = afterDecimal;
@@ -111,9 +111,9 @@ void Scaled::saveNumber(const char *in) {
 	}
 
 	if (hasContent(afterE)) {
-		const int exp = atoi(afterE); // Needs to deal with +/ at start
+		const long exp = atoi(afterE); // Needs to deal with +/ at start
 		if (exp > 0) {
-			mUnscaled *= (int) std::pow(10, exp);
+			mUnscaled.multiplyByTen(exp);
 		}
 		else {
 			mExp -= exp;  // Subtracting a negative adds to mExp
@@ -125,10 +125,6 @@ void Scaled::saveNumber(const char *in) {
 
 void Scaled::setSign(const Scaled &a) {
 	mUnscaled.setSign(a.mUnscaled);
-}
-
-void Scaled::appendRight(const int digit, const int numberOfDigits) {
-	mUnscaled.appendRight(digit, numberOfDigits);
 }
 
 Scaled::Scaled(const Integer &unscaled, const Integer &exp) {
@@ -186,11 +182,7 @@ bool Scaled::isPositive() const {
 
 bool Scaled::isInteger() const {
 	// 10 ^ -0 == 1
-#ifdef USE_INTEGER_FOR_EXP
-	return mExp.isZero();
-#else
 	return mExp == 0;
-#endif
 }
 
 Integer Scaled::getDenom() const {
@@ -206,14 +198,30 @@ bool Scaled::isEven() const {
 	return mUnscaled.isEven();
 }
 
+void Scaled::multiplyByTen() {
+	if (mExp > 0) {
+		mExp--;
+	}
+	else {
+		shiftLeft(1);
+	}
+}
+
+void Scaled::multiplyByTen(const long exp) {
+	if (mExp == 0) { // This is a possible optimization.  If the exp is already zero, we can just do all the shifts together
+		shiftLeft(exp);
+	}
+	else {
+		for (long i = 0; i < exp; i++) {
+			multiplyByTen();
+		}
+	}
+}
+
 void Scaled::simplify() {
 	if (s_Simplify == S_KEEP) return;
 	if (isInteger()) return;
-#ifdef USE_INTEGER_FOR_EXP
-	mExp -= mUnscaled.trimTrailing(mExp.toInt());
-#else
 	mExp -= mUnscaled.trimTrailing(mExp);
-#endif
 }
 
 std::string Scaled::toString() const {
@@ -221,11 +229,7 @@ std::string Scaled::toString() const {
 		return mUnscaled.toString();
 	}
 	else {
-#ifdef USE_INTEGER_FOR_EXP
-		const int digits = mExp.toInt();
-#else
-		const int digits = mExp;
-#endif
+		const long digits = mExp;
 		if (digits < 0) return "negative-exp";
 		std::string str = mUnscaled.toString();
 
@@ -239,11 +243,8 @@ std::string Scaled::toString() const {
 }
 
 double Scaled::toDouble() const {
-#ifdef USE_INTEGER_FOR_EXP
-	return mUnscaled.toDouble() * std::pow(10.0, - mExp.toDouble());
-#else
-	return mUnscaled.toDouble() * std::pow(10.0, - mExp);
-#endif
+	// We need to use std::pow() here (and not powLong()) because its a negative exponent
+	return mUnscaled.toDouble() * std::pow(10, - mExp);
 }
 
 Integer Scaled::toInteger() const {
@@ -257,6 +258,11 @@ Unsigned Scaled::toUnsigned() const {
 
 int Scaled::toInt() const {
 	return toInteger().toInt();
+}
+
+std::string Scaled::toDump() const {
+	const std::string strExp = mExp == 0 ? "0" : "-" + std::to_string(mExp);
+	return "{unscaled=" + mUnscaled.toString() + ", exp=" + strExp + "}";
 }
 
 Scaled Scaled::abs(const Scaled &a) {
@@ -292,15 +298,12 @@ void Scaled::convertToSameExponent(Scaled &a, Scaled &b) {
 	b.mExp += a.mExp;
 }
 
+// ie Convert to a whole number
 void Scaled::convertToZeroExponent(Scaled &a, Scaled &b) {
-#ifdef USE_INTEGER_FOR_EXP
-	const int places = std::max(a.mExp.toInt(), b.mExp.toInt());
-#else
-	const int places = std::max(a.mExp, b.mExp);
-#endif
+	const long places = std::max(a.mExp, b.mExp);
 	if (places > 0) {
-		a *= std::pow(10, places);
-		b *= std::pow(10, places);
+		a.multiplyByTen(places);
+		b.multiplyByTen(places);
 	}
 }
 
@@ -349,8 +352,6 @@ Scaled Scaled::half(const Scaled &a) {
 	return Scaled::divide(a, s_ScaledTwo);
 }
 
-#define DIVIDE_WITH_UNSIGNED
-
 Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 	Scaled out;
 
@@ -374,7 +375,6 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
     // Scale both numbers to whole integers by finding decimal places
 	convertToZeroExponent(a1, b1);
 
-#ifdef DIVIDE_WITH_UNSIGNED
 	const Unsigned a = a1.toUnsigned();
 	const Unsigned b = b1.toUnsigned();
     
@@ -385,30 +385,12 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
     
     // Compute decimal places up to the requested precision
 	for (int i = 1; i <= s_iPrecision; i++) {
-		remainder.appendRight(0, 1); // remainder *= 10;
+		remainder.multiplyByTen();
 		const UnsignedDivide div1 = Unsigned::divideWithRem(remainder, b);
 		resultString += div1.quotient.firstDigitAsChar();
 		remainder = div1.remainder;
 		if (remainder == 0) break;
 	}
-#else
-	const Integer a = a1.toInteger();
-	const Integer b = b1.toInteger();
-    
-    // Integer division for the whole number part
-	const IntegerDivide div0 = Integer::divideWithRem(a, b);
-	std::string resultString = div0.quotient.toString() + ".";
-	Integer remainder = div0.remainder;
-    
-    // Compute decimal places up to the requested precision
-	for (int i = 1; i <= s_iPrecision; i++) {
-		remainder.appendRight(0, 1); // remainder *= 10;
-		const IntegerDivide div1 = Integer::divideWithRem(remainder, b);
-		resultString += div1.quotient.firstDigitAsChar();
-		remainder = div1.remainder;
-		if (remainder == 0) break;
-	}
-#endif
 
     // Apply the correct sign
 	if (isNegative) {
@@ -446,23 +428,23 @@ Scaled Scaled::floor(const Scaled &a) {
 	return a.toInteger();
 }
 
-Scaled Scaled::pow(const Scaled &a, const Scaled &exp) {
+Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
 	if (exp.isZero()) return s_ScaledOne;
 
 	if (exp.isInteger()) {
-		const Scaled x = pow(a, halfInt(exp)); // Recursive
+		const Scaled x = pow(base, halfInt(exp)); // Recursive
 
 		if (exp.isEven()) {
 			return x * x;
 		}
 		else {
-			return a * x * x;
+			return base * x * x;
 		}
 	}
 	else {
 		Scaled result = 1;
 		for (Scaled i = 0; i < exp; i++) {
-			result *= a;
+			result *= base;
 		}
 		return result;
 	}
@@ -721,16 +703,10 @@ bool Scaled::testLcm(const double a, const double b) {
 	return eq(dResult, dCorrect, epsilon);
 }
 
-double Scaled::sqrtDouble(const double s) {
-	if (s < 0) {
-		return sqrtDouble(std::abs(s));
-	}
-	return std::sqrt(s);
-}
 
 bool Scaled::testSqrt(const double a) {
 	const double dResult = Scaled::sqrt(a).toDouble();
-	const double dCorrect = sqrtDouble(a);
+	const double dCorrect = std::sqrt(a);
 	if (ne(dResult,dCorrect)) {
 		fprintf(stderr, "sqrt(%g) = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
 	}
@@ -789,20 +765,19 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 
 		// We want extra tests around zero
 		for (long n = -10; n <= 10; n++) {
-			values.push_back(n);
+			values.push_back((double)n);
 		}
 
 		std::sort(values.begin(), values.end());
 		(void) std::unique(values.begin(), values.end());
 	} else { // Counting down
 		for (long n = start; n >= end; n += inc) {
-			const double d = (double)n / 10.0;
-			values.push_back(d);
+			values.push_back((double)n / 10.0);
 		}
 
 		// We want extra tests around zero
 		for (long n = 10; n >= -10; n--) {
-			values.push_back(n);
+			values.push_back((double)n);
 		}
 
 		// Reverse sort
@@ -814,14 +789,25 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 #undef ONLY_TEST_DIVIDE
 
 bool Scaled::testAll() {
+	/*
+	Scaled a(1234);
+	Scaled b(".0003");
+	printf("a=%s b=%s\n", a.toString().c_str(), b.toString().c_str());
+	printf("a=%s b=%s\n", a.toDump().c_str(), b.toDump().c_str());
+	Scaled::convertToZeroExponent(a, b);
+	printf("a=%s b=%s\n", a.toString().c_str(), b.toString().c_str());
+	printf("a=%s b=%s\n", a.toDump().c_str(), b.toDump().c_str());
+	exit(1);
+	*/
+
 	int nSuccess = 0;
 	int nFail = 0;
-	const long start = currentMillis();
+	const long startMs = currentMillis();
 
 #ifndef ONLY_TEST_DIVIDE
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
-	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25" };
-	const char *checkStrExpect[] = { "10000", ".0001", "0", "0",       "4", "4000",     "0", "-25" };
+	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25", "123456789012345678901234567890" };
+	const char *checkStrExpect[] = { "10000", ".0001", "0", "0",       "4", "4000",     "0", "-25", "123456789012345678901234567890" };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
 	for (int i = 0; i < nCheckStr; i++) {
 		printf("Testing store str %s\n", checkStr[i]);
@@ -1000,7 +986,7 @@ bool Scaled::testAll() {
 		if (nFail > 50) break;
 	}
 
-	for (double a = 0; a <= A_END; a += A_INC) {
+	for (double a = 0; a <= A_END; a += (double)A_INC) {
 		printf("Testing sqrt with %g\n", a);
 		if (testSqrt(a)) {
 			nSuccess++;
@@ -1030,9 +1016,7 @@ bool Scaled::testAll() {
 		}
 	}
 #endif
-
-	const long durationMs = currentMillis() - start;
-	const double durationSeconds = durationMs / 1000.0;
-	printf("Success: %d  Fail: %d  Took: %.1f seconds\n", nSuccess, nFail, durationSeconds);
+	
+	printTestResults("scaledTest", nSuccess, nFail, startMs);
 	return nFail == 0;
 }

@@ -33,9 +33,10 @@ class Unsigned {
 
 public:
 	void trimLeading();
-	int trimTrailing(const int);
+	long trimTrailing(const long);
 	void clear();
-	void appendRight(const int digit, const int numberOfDigits);
+	void append(const int digit, const long numberOfDigits);
+	void shiftLeft(const long numberOfDigits) { append(0, numberOfDigits); }
 	void saveNumber(const char *);
 	std::string toString() const;
 	char firstDigitAsChar() const;
@@ -43,7 +44,6 @@ public:
 	int toInt() const; // Loses precision (will be always be positive)
 	long toLong() const; // Loses precision
 	long long toLongLong() const; // Loses precision
-	double toDouble() const; // Loses precision
 	void set(const Unsigned &);
 	bool isZero() const;
 	bool isSmall(const int) const;
@@ -53,6 +53,7 @@ public:
 	bool isFive() const { return isSmall(5); }
 	bool isOdd() const;
 	bool isEven() const;
+	void multiplyByTen() { append(0); }
 
 	static int compare(const Unsigned &, const Unsigned &);
 

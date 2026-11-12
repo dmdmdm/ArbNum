@@ -39,3 +39,17 @@ char *shuffle(char *dest, const char *src);
 //
 
 long currentMillis();
+
+double getDurationSeconds(const long startMs);
+
+void printTestResults(const char *testName, const int nSuccess, const int nFail, const long startMs);
+
+//
+// Math
+//
+
+long powLong(const long base, const long exp);
+
+long sqrtLong(const long);
+
+void utilTest();

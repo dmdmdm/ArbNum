@@ -6,23 +6,18 @@
 
 #include "integer.h"
 
-#undef USE_INTEGER_FOR_EXP
-
 class ScaledDivide;
 
 class Scaled {
 	typedef enum { SPEC_NORMAL, SPEC_ERROR, SPEC_IGNORE } SpecialType;
 	SpecialType	mSpecial = SPEC_NORMAL;
 	Integer mUnscaled; // The unscaled value
-#ifdef USE_INTEGER_FOR_EXP
-	Integer mExp; // Exponent (Value = mUnscaled * 10 ^ -mExp)
-#else
-	int mExp; // Exponent (Value = mUnscaled * 10 ^ -mExp)
-	// Using an int for the exponent means its not unlimited.
-#endif
+	long mExp; // Exponent (Value = mUnscaled * 10 ^ -mExp)
+	// Using a long for the exponent means its not unlimited.
+	// The POSIX bc does the same thing.
 
 	void clear();
-	void appendRight(const int digit, const int numberOfDigits);
+	void shiftLeft(const long numberOfDigits) { mUnscaled.shiftLeft(numberOfDigits); }
 
 public:
 	void saveNumber(const char *);
@@ -56,6 +51,8 @@ public:
 	Integer getDenom() const;
 	bool isOdd() const;
 	bool isEven() const;
+	void multiplyByTen();
+	void multiplyByTen(const long exp);
 
 	void simplify();
 
@@ -64,6 +61,7 @@ public:
 	Integer toInteger() const; // Loses decimal part
 	Unsigned toUnsigned() const; // Loses sign and decimal part 
 	int toInt() const; // Loses precision and decimal part
+	std::string toDump() const;
 
 	static void convertToSameExponent(Scaled &, Scaled &);
 	static void convertToZeroExponent(Scaled &, Scaled &); // Whole numbers
@@ -122,7 +120,6 @@ public:
 	static bool testGcd(const double, const double);
 	static double lcmDouble(const double, const double);
 	static bool testLcm(const double, const double);
-	static double sqrtDouble(const double);
 	static bool testSqrt(const double);
 	static double isPrimeDouble(const double);
 	static bool testIsPrime(const double);

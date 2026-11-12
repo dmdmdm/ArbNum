@@ -27,17 +27,14 @@ static const Unsigned s_UnsignedSix(6);
 static const int UNASSIGNED = -1;
 
 void Unsigned::pad(const size_t len) {
-	mDigits.reserve(len); // 2026nov10
+	mDigits.reserve(len);
 	while (mDigits.size() < len) {
 		prepend(0);
 	}
 }
 
-void Unsigned::appendRight(const int digit, const int numberOfDigits) {
-	mDigits.reserve(mDigits.size() + numberOfDigits); // 2026nov10
-	for (int i = 0; i < numberOfDigits; i++) {
-		append(digit);
-	}
+void Unsigned::append(const int digit, const long numberOfDigits) {
+	mDigits.insert(mDigits.end(), numberOfDigits, digit);
 }
 
 void Unsigned::padShorterNumber(Unsigned &a, Unsigned &b) {
@@ -128,8 +125,8 @@ void Unsigned::trimLeading() {
 	mDigits.erase(mDigits.begin(), lastZero);
 }
 
-int Unsigned::trimTrailing(const int atMost) {
-	int nTrailing = 0;
+long Unsigned::trimTrailing(const long atMost) {
+	long nTrailing = 0;
 
 	// Count trailing zeros (up to atMost)
 	for (digits_t::reverse_iterator it = mDigits.rbegin(); it != mDigits.rend(); it++) {
@@ -219,10 +216,6 @@ long long Unsigned::toLongLong() const {
 #else
 	return atoll(toString().c_str());
 #endif
-}
-
-double Unsigned::toDouble() const {
-	return atof(toString().c_str());
 }
 
 void Unsigned::set(const Unsigned &in) {
@@ -544,7 +537,7 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 	UnsignedDivide	result;
 
 	result.quotient.pad(dividend.length());
-	runningDividend.appendRight(UNASSIGNED, dividend.length());
+	runningDividend.append(UNASSIGNED, dividend.length());
 
 	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toInt()) {
@@ -573,7 +566,7 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 		result.quotient[iDividendPos] = partDivide.quotient.mDigits[0];
 
 		runningDividend = subtract(chunk, partProd);
-		runningDividend.appendRight(UNASSIGNED, dividend.length() - iDividendPos - 1);
+		runningDividend.append(UNASSIGNED, dividend.length() - iDividendPos - 1);
 		runningDividend.pad(dividend.length()); 
 	}
 
@@ -597,16 +590,16 @@ Unsigned Unsigned::mod(const Unsigned &a, const Unsigned &b) {
 	return divideWithRemFast(a, b).remainder;
 }
 
-Unsigned Unsigned::pow(const Unsigned &a, const Unsigned &exp) {
+Unsigned Unsigned::pow(const Unsigned &base, const Unsigned &exp) {
 	if (exp.isZero()) return s_UnsignedOne;
 
-	const Unsigned x = pow(a, half(exp)); // Recursive
+	const Unsigned x = pow(base, half(exp)); // Recursive
 
 	if (exp.isEven()) {
 		return x * x;
 	}
 	else {
-		return a * x * x;
+		return base * x * x;
 	}
 }
 
@@ -821,7 +814,7 @@ bool Unsigned::testMod(const unsigned int a, const unsigned int b) {
 
 bool Unsigned::testPow(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::pow(a, b).toInt();
-	const unsigned int correct = std::pow(a, b);
+	const unsigned int correct = (unsigned int) powLong(a, b);
 	if (result != correct) {
 		fprintf(stderr, "pow(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
@@ -884,7 +877,7 @@ unsigned int Unsigned::isPrimeNativeUnsigned(const unsigned int a) {
 	if (a == 2 || a == 3 || a == 5) return true;
 	if (a % 2 == 0 || a % 3 == 0 || a % 5 == 0) return false;
 
-	const int boundary = std::sqrt(a);
+	const int boundary = (int)std::sqrt(a);
 	for (int i = 6; i <= boundary; i += 6) {
 		if (a % (i + 1) == 0 || a % (i + 5) == 0) {
 			return false;
@@ -951,6 +944,7 @@ void Unsigned::makeTestValues(const unsigned int start, const unsigned int end, 
 bool Unsigned::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
+	const long startMs = currentMillis();
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello" };
@@ -1156,6 +1150,6 @@ bool Unsigned::testAll() {
 		}
 	}
 
-	printf("Success: %d  Fail: %d\n", nSuccess, nFail);
+	printTestResults("unsignedTest", nSuccess, nFail, startMs);
 	return nFail == 0;
 }

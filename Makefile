@@ -13,7 +13,7 @@ else
 endif
 
 CC = gcc
-CFLAGS = -g -I. -fno-rtti -fno-exceptions -Wall
+CFLAGS = -g -I. -fno-rtti -fno-exceptions -Wall -Wconversion
 CPPFLAGS = $(CFLAGS)
 HEADERS = bc_calc.h bc_tokenizer.h integer.h scaled.h unsigned.h util.h
 SOURCES = bc_calc.cpp bc.cpp bc_tokenizer.cpp example_use_of_integer.cpp example_use_of_scaled.cpp integer.cpp scaled.cpp unsigned.cpp util.cpp
@@ -52,4 +52,4 @@ check: bc
 	fi	
 
 check_to_file: bc
-	./bc -t > tests.txt 2>&1
+	./bc -t > _tests.txt 2>&1

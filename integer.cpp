@@ -81,7 +81,7 @@ Integer::Integer(const bool b) {
 	set((int) b);
 }
 
-int Integer::trimTrailing(const int atMost) {
+long Integer::trimTrailing(const long atMost) {
 	return mUnsigned.trimTrailing(atMost);
 }
 
@@ -92,8 +92,10 @@ void Integer::clear() {
 	mUnsigned.clear();
 }
 
-void Integer::appendRight(const int digit, const int numberOfDigits) {
-	mUnsigned.appendRight(digit, numberOfDigits);
+void Integer::multiplyByTen(const long exp) {
+	for (long i = 0; i < exp; i++) {
+		multiplyByTen();
+	}
 }
 
 void Integer::saveNumber(const char *s) {
@@ -273,10 +275,10 @@ Integer Integer::doNot(const Integer &a) {
 	return a.isZero() ? s_IntegerOne : s_IntegerZero;
 }
 
-Integer Integer::pow(const Integer &a, const Integer &exp) {
-	Integer result = Unsigned::pow(a.mUnsigned, exp.mUnsigned);
+Integer Integer::pow(const Integer &base, const Integer &exp) {
+	Integer result = Unsigned::pow(base.mUnsigned, exp.mUnsigned);
 
-	if (a.isNegative()) {
+	if (base.isNegative()) {
 		result.mSign = exp.mUnsigned.isEven() ? 1 : -1;
 	}
 
@@ -528,7 +530,7 @@ bool Integer::testMod(const long a, const long b) {
 
 bool Integer::testPow(const long a, const long b) {
 	const long lResult = Integer::pow(a, b).toLong();
-	const long lCorrect = std::pow(a, b);
+	const long lCorrect = powLong(a, b);
 	if (lResult != lCorrect) {
 		fprintf(stderr, "pow(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
@@ -567,13 +569,6 @@ bool Integer::testLcm(const long a, const long b) {
 	return lResult == lCorrect;
 }
 
-long Integer::sqrtLong(const long s) {
-	if (s < 0) {
-		return sqrtLong(std::abs(s));
-	}
-	return std::sqrt(s);
-}
-
 bool Integer::testSqrt(const long a) {
 	const long lResult = Integer::sqrt(a).toLong();
 	const long lCorrect = sqrtLong(a);
@@ -589,7 +584,7 @@ long Integer::isPrimeLong(const long a) {
 	if (a == 2 || a == 3 || a == 5) return true;
 	if (a % 2 == 0 || a % 3 == 0 || a % 5 == 0) return false;
 
-	const long boundary = std::sqrt(a);
+	const long boundary = sqrtLong(a);
 	for (long i = 6; i <= boundary; i += 6) {
 		if (a % (i + 1) == 0 || a % (i + 5) == 0) {
 			return false;
@@ -656,6 +651,7 @@ void Integer::makeTestValues(const long start, const long end, const long inc, s
 bool Integer::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
+	const long startMs = currentMillis();
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello", "-25" };
@@ -858,6 +854,6 @@ bool Integer::testAll() {
 		}
 	}
 
-	printf("Success: %d  Fail: %d\n", nSuccess, nFail);
+	printTestResults("integerTest", nSuccess, nFail, startMs);
 	return nFail == 0;
 }
