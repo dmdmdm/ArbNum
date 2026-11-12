@@ -37,6 +37,14 @@ void Unsigned::append(const int digit, const long numberOfDigits) {
 	mDigits.insert(mDigits.end(), numberOfDigits, digit);
 }
 
+void Unsigned::shiftRight(const long numberOfDigits) {
+	if (numberOfDigits > (long)mDigits.size()) {
+		ArbNum_log("shiftRight: asked to delete more digits than are present\n");
+	}
+	const long n = std::min(numberOfDigits, (long)mDigits.size());
+	mDigits.erase(mDigits.end() - n, mDigits.end());
+}
+
 void Unsigned::padShorterNumber(Unsigned &a, Unsigned &b) {
 	if (a.length() < b.length()) {
 		a.pad(b.length());
@@ -289,7 +297,7 @@ int Unsigned::compare(const Unsigned &aIn, const Unsigned &bIn) {
 
 	padShorterNumber(pA, pB, padded);
 
-	for (size_t i = 0; i < pA->length(); i++) {
+	for (long i = 0; i < pA->length(); i++) {
 		if (pA->mDigits[i] < pB->mDigits[i]) return -1;
 		if (pA->mDigits[i] > pB->mDigits[i]) return 1;
 	}

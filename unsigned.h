@@ -22,7 +22,6 @@ class Unsigned {
 	static char intToChar(const int);
 
 	void mkError();
-	size_t length() const { return mDigits.size(); }
 	void prepend(const int digit) { mDigits.insert(mDigits.begin(), digit); }
 	void append(const int digit) { mDigits.push_back(digit); }
 	static Unsigned findDivisibleSizedChunk(const Unsigned &runningDividend, const Unsigned &dividend, const Unsigned &divisor, int &iDividendPos, bool &fits);
@@ -37,6 +36,8 @@ public:
 	void clear();
 	void append(const int digit, const long numberOfDigits);
 	void shiftLeft(const long numberOfDigits) { append(0, numberOfDigits); }
+	void shiftRight(const long numberOfDigits);
+	long length() const { return mDigits.size(); }
 	void saveNumber(const char *);
 	std::string toString() const;
 	char firstDigitAsChar() const;
