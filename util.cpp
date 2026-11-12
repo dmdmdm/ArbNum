@@ -65,6 +65,13 @@ bool hasContent(const char *s) {
 }
 
 void safe_strcpy(char *dest, const char *src, const size_t size) {
+	if (dest == nullptr || size == 0) return;
+
+    if (src == nullptr) {
+        dest[0] = '\0';
+        return;
+    }
+
 #ifdef _MSC_VER
 	lstrcpyn(dest, src, size); // Correct
 #elif defined(_WIN32)
