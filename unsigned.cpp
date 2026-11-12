@@ -566,7 +566,7 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 		result.quotient[iDividendPos] = partDivide.quotient.mDigits[0];
 
 		runningDividend = subtract(chunk, partProd);
-		runningDividend.append(UNASSIGNED, dividend.length() - iDividendPos - 1);
+		runningDividend.append(UNASSIGNED, (long)(dividend.length() - iDividendPos - 1));
 		runningDividend.pad(dividend.length()); 
 	}
 
