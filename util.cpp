@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <stddef.h>	// For NULL
 
-#ifdef __linux__
+#ifndef _MSC_VER
 #include <sys/time.h>	// For gettimeofday()
 #include <unistd.h>
 #endif
@@ -45,11 +45,11 @@ void ArbNum_log(const char *format, ...) {
 
 bool isHome() {
 	char host[256] = "";
-#ifdef __linux__
-	gethostname(host, sizeof(host));
-#elif defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 	DWORD dwSize = sizeof(host);
 	::GetComputerName(host, &dwSize);
+#else
+	gethostname(host, sizeof(host));
 #endif
 	return strcmp(host, "bolt") == 0 || strcmp(host, "DJM") == 0;
 }
@@ -111,7 +111,7 @@ char *shuffle(char *dest, const char *src) {
 
 long currentMillis() {
 #ifdef _MSC_VER
-	return GetTickCount();
+	return ::GetTickCount();
 #else
 	struct timeval tp;
 
