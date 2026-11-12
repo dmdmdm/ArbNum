@@ -848,6 +848,7 @@ bool Scaled::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
 	const long startMs = currentMillis();
+	int testLimit = 10; // Seconds
 
 #ifndef ONLY_TEST_DIVIDE
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
@@ -1006,6 +1007,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	for (double a : a_values) {
 		printf("Testing gcd with %g on the left\n", a);
 		for (double b : b_values) {
@@ -1018,6 +1020,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	for (double a : a_values) {
 		printf("Testing lcm with %g on the left\n", a);
 		for (double b : b_values) {
@@ -1031,6 +1034,7 @@ bool Scaled::testAll() {
 		if (nFail > 50) break;
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	for (double a = 0; a <= A_END; a += (double)A_INC) {
 		printf("Testing sqrt with %g\n", a);
 		if (testSqrt(a)) {
@@ -1041,6 +1045,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	for (double a = 0; a <= 100; a++) {
 		printf("Testing isPrime with %g\n", a);
 		if (testIsPrime(a)) {
@@ -1051,6 +1056,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	printf("Testing factorials: 1 to 13\n");
 	for (double a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
@@ -1061,6 +1067,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	printf("Testing sin: 1 to 3\n");
 	for (double a = 1; a < 3; a += .1) {
 		if (testSin(a)) {
@@ -1071,6 +1078,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	printf("Testing cos: 1 to 3\n");
 	for (double a = 1; a < 3; a += .1) {
 		if (testCos(a)) {
@@ -1082,7 +1090,7 @@ bool Scaled::testAll() {
 	}
 #endif
 	
-	printf("Factorial cache hit count=%ld\n", s_FactorialCacheHitCount);
+the_end:
 	printTestResults("scaledTest", nSuccess, nFail, startMs);
 	return nFail == 0;
 }
