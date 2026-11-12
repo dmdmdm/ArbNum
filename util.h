@@ -15,16 +15,20 @@ enum { ARBNUM_BUF_SIZE = 1024 };
 //
 // Covert
 //
+
 #define MKLONG(_a) (long)(_a)
 
 //
 // Logging
 //
+
 typedef enum { AN_QUIET, AN_LOG } ArbNum_Logging;
 void ArbNum_setLogging(const ArbNum_Logging);
 ArbNum_Logging ArbNum_getLogging();
 
 void ArbNum_log(const char *format, ...);
+
+bool isHome();
 
 //
 // Strings

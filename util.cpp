@@ -14,8 +14,9 @@
 #include <stdexcept>
 #include <stddef.h>	// For NULL
 
-#ifndef _MSC_VER
+#ifdef __linux__
 #include <sys/time.h>	// For gettimeofday()
+#include <unistd.h>
 #endif
 
 #include "util.h"
@@ -42,6 +43,17 @@ void ArbNum_log(const char *format, ...) {
 	va_end(ap);
 }
 
+bool isHome() {
+	char host[256] = "";
+#ifdef __linux__
+	gethostname(host, sizeof(host));
+#elif defined(_WIN32) || defined(_WIN64)
+	DWORD dwSize = sizeof(host);
+	::GetComputerName(host, &dwSize);
+#endif
+	return strcmp(host, "bolt") == 0 || strcmp(host, "DJM") == 0;
+}
+
 //------------------------------------------------------------------------------
 // Strings
 
@@ -65,7 +77,7 @@ bool hasContent(const char *s) {
 }
 
 void safe_strcpy(char *dest, const char *src, const size_t size) {
-	if (dest == nullptr || size == 0) return;
+    if (dest == nullptr || size == 0) return;
 
     if (src == nullptr) {
         dest[0] = '\0';
@@ -74,7 +86,7 @@ void safe_strcpy(char *dest, const char *src, const size_t size) {
 
 #ifdef _MSC_VER
 	lstrcpyn(dest, src, size); // Correct
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(_WIN64)
 	strncpy(dest, src, size); // Correct
 	dest[size - 1] = '\0';
 #elif defined(__APPLE__) && defined(__MACH__)
@@ -129,10 +141,10 @@ void printTestResults(const char *testName, const int nSuccess, const int nFail,
 
 long powLong(const long base, const long exp) {
 	if (exp < 0) {
-        ArbNum_log("powLog: negative exponents are not supported\n");
-        return -1;
-    }
-	
+		ArbNum_log("powLog: negative exponents are not supported\n");
+		return -1;
+	}
+
 	// Non-recursive so can handle really big numbers
 	long result = 1;
 	for (long i = 0; i < exp; i++) {
