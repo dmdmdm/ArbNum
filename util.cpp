@@ -128,6 +128,11 @@ void printTestResults(const char *testName, const int nSuccess, const int nFail,
 // Math
 
 long powLong(const long base, const long exp) {
+	if (exp < 0) {
+        ArbNum_log("powLog: negative exponents are not supported\n");
+        return -1;
+    }
+	
 	// Non-recursive so can handle really big numbers
 	long result = 1;
 	for (long i = 0; i < exp; i++) {
