@@ -13,6 +13,11 @@
 enum { ARBNUM_BUF_SIZE = 1024 };
 
 //
+// Covert
+//
+#define MKLONG(_a) (long)(_a)
+
+//
 // Logging
 //
 typedef enum { AN_QUIET, AN_LOG } ArbNum_Logging;
