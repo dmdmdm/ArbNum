@@ -48,8 +48,8 @@ void getHostName(char *host, const size_t size) {
 	DWORD dwSize = size;
 	::GetComputerName(host, &dwSize);
 #elif defined(_WIN32) || defined(_WIN64)
-	DWORD dwSize = size;
-	::GetComputerName(host, &dwSize);
+	// eg x86_64-w64-mingw32-g++
+	gethostname(host, size);
 #elif defined(__APPLE__) && defined(__MACH__)
 	gethostname(host, size);
 #elif defined(__linux__)
