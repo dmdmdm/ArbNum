@@ -26,9 +26,9 @@ static const Unsigned s_UnsignedFive(5);
 static const Unsigned s_UnsignedSix(6);
 static const int UNASSIGNED = -1;
 
-void Unsigned::pad(const size_t wantedLength) {
+void Unsigned::pad(const long wantedLength) {
 	mDigits.reserve(wantedLength);
-	while (mDigits.size() < wantedLength) {
+	while ((long)mDigits.size() < wantedLength) {
 		prepend(0);
 	}
 }

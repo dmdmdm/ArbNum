@@ -14,7 +14,7 @@ class Unsigned {
 	digits_t mDigits;
 
 	void zero();
-	void pad(const size_t wantedLength);
+	void pad(const long wantedLength);
 	static void padShorterNumber(Unsigned &, Unsigned &);
 	static void padShorterNumber(const Unsigned *&pA, const Unsigned *&pB, Unsigned &padded);
 
