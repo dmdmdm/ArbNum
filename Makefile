@@ -32,7 +32,7 @@ bc.exe: Makefile bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scale
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o (LDFLAGS)
 
 check_win: bc.exe
-	echo Tests are disabled in Windows
+	echo dir
 
 bc: Makefile $(HEADERS) bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o $(LDFLAGS)
@@ -44,12 +44,7 @@ example_use_of_scaled: Makefile $(HEADERS) util.o unsigned.o integer.o scaled.o 
 	$(CC) $(CFLAGS) -o $@ util.o unsigned.o integer.o scaled.o example_use_of_scaled.o $(LDFLAGS)
 
 check: bc
-	# Use POSIX [ rather than [[
-	@if [ "$(DETECTED_OS)" = "Windows" ]; then \
-		.\\bc -t; \
-	else \
-		./bc -t; \
-	fi	
+	./bc -t
 
 check_to_file: bc
 	./bc -t > _tests.txt 2>&1
