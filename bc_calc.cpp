@@ -33,6 +33,7 @@ static const Function s_Funcs[] = {
 	{"sign",		1, (void*) Scaled::sign},
 	{"sin",			1, (void*) Scaled::sin},
 	{"sqrt",		1, (void*) Scaled::sqrt},
+	{"tan",			1, (void*) Scaled::tan},
 	{NULL,			0, NULL}
 };
 

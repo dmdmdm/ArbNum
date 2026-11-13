@@ -12,7 +12,7 @@ class Scaled {
 	typedef enum { SPEC_NORMAL, SPEC_ERROR, SPEC_IGNORE } SpecialType;
 	SpecialType	mSpecial = SPEC_NORMAL;
 	Integer mUnscaled; // The unscaled value
-	long mExp; // Exponent (Value = mUnscaled * 10 ^ -mExp)
+	long mExp = 0; // Exponent (Value = mUnscaled * 10 ^ -mExp)
 	// Using a long for the exponent means its not unlimited.
 	// The POSIX bc does the same thing.
 
@@ -23,6 +23,7 @@ public:
 	void saveNumber(const char *);
 	void setSign(const Scaled &);
 	void mkNegative() { mUnscaled.mkNegative(); }
+	void flipSign() { mUnscaled.flipSign(); }
 
 	// Constructors
 	Scaled() {};
@@ -78,6 +79,7 @@ public:
 	static Scaled max(const Scaled &, const Scaled &);
 	static Scaled doNot(const Scaled &);
 	static Scaled floor(const Scaled &);
+	static Scaled round(const Scaled &);
 	static Scaled pow(const Scaled &, const Scaled &);
 	static Scaled gcd(const Scaled &, const Scaled &);
 	static Scaled lcm(const Scaled &, const Scaled &);
@@ -87,6 +89,7 @@ public:
 	static Scaled isPrime(const Scaled &);
 	static Scaled sin(const Scaled &);
 	static Scaled cos(const Scaled &);
+	static Scaled tan(const Scaled &);
 
 	void set(const Scaled &);
 	void add(const Scaled &);
@@ -128,6 +131,7 @@ public:
 	static bool testFactorial(const double);
 	static bool testSin(const double);
 	static bool testCos(const double);
+	static bool testTan(const double);
 	static void makeTestValues(const long start, const long end, const long inc, std::vector<double> &);
 	static bool testAll();
 };

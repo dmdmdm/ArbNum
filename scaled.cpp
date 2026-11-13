@@ -38,8 +38,11 @@ static const Scaled s_ScaledOne(1);
 static const Scaled s_ScaledTwo(2);
 static const Scaled s_ScaledMinusOne(-1);
 static const Scaled s_ScaledPi("3.1415926535897932384626433832795");
+static const Scaled s_ScaledPi2(s_ScaledPi * 2);
+static const Scaled s_ScaledPiDiv2(s_ScaledPi / 2);
+static const Scaled s_ScaledPiDiv4(s_ScaledPi / 4);
 
-// Precision / epsilon
+// Precision and epsilon
 
 static const Scaled s_ScaledEpsilon("0.000001"); // 1e-6
 // We calculate divide to 7 decimals and check to one less
@@ -427,6 +430,16 @@ Scaled Scaled::floor(const Scaled &a) {
 	return a.toInteger();
 }
 
+Scaled Scaled::round(const Scaled &x) {
+	Scaled t = floor(x);			// integer part, toward zero
+	Scaled frac = x - t;			// fractional part, same sign as x 
+
+    if (frac >= 0.5)  t += 1.0;
+    else if (frac <= -0.5) t -= 1.0;
+
+    return t;
+}
+
 Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
 	if (exp.isZero()) return s_ScaledOne;
 
@@ -441,8 +454,9 @@ Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
 		}
 	}
 	else {
-		Scaled result = 1;
-		for (Scaled i = 0; i < exp; i++) {
+		// Probably wrong
+		Scaled result = base;
+		for (Scaled i = 1; i < exp; i++) {
 			result *= base;
 		}
 		return result;
@@ -517,22 +531,77 @@ Scaled Scaled::isPrime(const Scaled &a) {
 	return Integer::isPrime(a.toInteger());
 }
 
-// In radians
-Scaled Scaled::sin(const Scaled &x) {
-	Scaled out;
-	for (Scaled n = 0; n < 9; n++) {
-		out += pow(-1, n) * pow(x, 2 * n + 1) / factorial(2 * n + 1);
+// In radians, Taylor series
+// https://en.wikipedia.org/wiki/Taylor_series
+Scaled Scaled::sin(const Scaled &xIn) {
+	Scaled x(xIn);
+	if (x > s_ScaledPi2) {
+		x = x % s_ScaledPi2;
+	}
+
+	Scaled out, chunk, sign(1), term;
+	for (int n = 0; n < 20; n++) {
+		chunk = 2 * n + 1;
+		term = pow(x, chunk) / factorial(chunk);
+		out += sign * term;
+		if (term < s_ScaledEpsilon) break;
+		sign.flipSign();
 	}
 	return out;
 }
 
-// In radians
-Scaled Scaled::cos(const Scaled &x) {
-	Scaled out;
-	for (Scaled n = 0; n < 9; n++) {
-		out += pow(-1, n) * pow(x, 2 * n) / factorial(2 * n);
+// In radians, Tayor series
+Scaled Scaled::cos(const Scaled &xIn) {
+	Scaled x(xIn);
+	if (x > s_ScaledPi2) {
+		x = x % s_ScaledPi2;
+	}
+
+	Scaled out, chunk, sign(1), term;
+	for (int n = 0; n < 20; n++) {
+		chunk = 2 * n;
+		term = pow(x, chunk) / factorial(chunk);
+		out += sign * term;
+		if (term < s_ScaledEpsilon) break;
+		sign.flipSign();
 	}
 	return out;
+}
+
+// In radians, Tayor series
+// Slower than other trig functions because does sin() and cos()
+Scaled Scaled::tan(const Scaled &xIn) {
+	Scaled x(xIn);
+
+    // Range reduction to [-pi/2, pi/2]
+    x = x - s_ScaledPi * Scaled::round(x / s_ScaledPi);
+
+    // Handle sign (tan is odd)
+    int sign = 1;
+    if (x.isNegative()) {
+        x.flipSign(); // x = -x
+        sign = -1;
+	}
+
+    // Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
+    bool invert = false;
+    if (x > s_ScaledPiDiv4) {
+        x = s_ScaledPiDiv2 - x;
+        invert = true;
+	}
+
+	const Scaled s = sin(x);
+	const Scaled c = cos(x);
+
+    // Combine
+	Scaled result;
+	if (invert) {
+		result = c / s;
+	}
+	else {
+		result = s / c;
+	}
+    return sign * result;
 }
 
 void Scaled::set(const Scaled &other) {
@@ -800,6 +869,15 @@ bool Scaled::testCos(const double a) {
 	return eq(dResult, dCorrect);
 }
 
+bool Scaled::testTan(const double a) {
+	const double dResult = Scaled::tan(a).toDouble();
+	const double dCorrect = std::tan(a);
+	if (ne(dResult, dCorrect)) {
+		fprintf(stderr, "tan %g = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	}
+	return eq(dResult, dCorrect);
+}
+
 // We iterate using long's and divide by 10 to get a double which we save.
 // This is rather than interating thru double which can get weird values.
 void Scaled::makeTestValues(const long start, const long end, const long inc, std::vector<double> &values) {
@@ -834,23 +912,16 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 	}
 }
 
-#undef ONLY_TEST_DIVIDE
-
 bool Scaled::testAll() {
-	/*
-	Scaled a = -1;
-	Scaled b = 5040;
-	Scaled c = a / b;
-	printf("c=%s\n", c.toString().c_str());
-	exit(1);
-	*/
-
 	int nSuccess = 0;
 	int nFail = 0;
 	const long startMs = currentMillis();
 	int testLimit = 10; // Seconds
 
-#ifndef ONLY_TEST_DIVIDE
+	if (isHome()) {
+		testLimit = 120;
+	}
+
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25", "123456789012345678901234567890" };
 	const char *checkStrExpect[] = { "10000", ".0001", "0", "0",       "4", "4000",     "0", "-25", "123456789012345678901234567890" };
@@ -899,7 +970,6 @@ bool Scaled::testAll() {
 			nFail++;
 		}
 	}
-#endif
 
 	const long A_START = -10000;
 	const long A_END = 10000;
@@ -918,7 +988,6 @@ bool Scaled::testAll() {
 	makeTestValues(B_START, B_END, B_INC, b_values);
 	printf("Number of tests per function=%ld\n", MKLONG(a_values.size() * b_values.size()));
 
-#ifndef ONLY_TEST_DIVIDE
 	for (double a : a_values) {
 		printf("Testing compare with %g on the left\n", a);
 		for (double b : b_values) {
@@ -966,7 +1035,6 @@ bool Scaled::testAll() {
 			}
 		}
 	}
-#endif
 
 	for (double a : a_values) {
 		printf("Testing divide with %g on the left\n", a);
@@ -981,7 +1049,6 @@ bool Scaled::testAll() {
 		}
 	}
 
-#ifndef ONLY_TEST_DIVIDE
 	for (double a : a_values) {
 		printf("Testing mod with %g on the left\n", a);
 		for (double b : b_values) {
@@ -1031,7 +1098,6 @@ bool Scaled::testAll() {
 				nFail++;
 			}
 		}
-		if (nFail > 50) break;
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
@@ -1068,8 +1134,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	printf("Testing sin: 1 to 3\n");
-	for (double a = 1; a < 3; a += .1) {
+	for (double a = 1; a < 12; a += .4) {
+		printf("Testing sin with %g\n", a);
 		if (testSin(a)) {
 			nSuccess++;
 		}
@@ -1079,8 +1145,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	printf("Testing cos: 1 to 3\n");
-	for (double a = 1; a < 3; a += .1) {
+	for (double a = 1; a < 12; a += .4) {
+		printf("Testing cos with %g\n", a);
 		if (testCos(a)) {
 			nSuccess++;
 		}
@@ -1088,7 +1154,17 @@ bool Scaled::testAll() {
 			nFail++;
 		}
 	}
-#endif
+
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	for (double a = 1; a < 12; a += .4) {
+		printf("Testing tan with %g\n", a);
+		if (testTan(a)) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
 	
 the_end:
 	printTestResults("scaledTest", nSuccess, nFail, startMs);
