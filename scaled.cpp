@@ -36,17 +36,18 @@ static const Integer s_IntegerTen(10);
 static const Scaled s_ScaledZero(0);
 static const Scaled s_ScaledOne(1);
 static const Scaled s_ScaledTwo(2);
+static const Scaled s_ScaledFour(4);
 static const Scaled s_ScaledMinusOne(-1);
 static const Scaled s_ScaledPi("3.1415926535897932384626433832795");
 static const Scaled s_ScaledPi2(s_ScaledPi * 2);
-static const Scaled s_ScaledPiDiv2(s_ScaledPi / 2);
-static const Scaled s_ScaledPiDiv4(s_ScaledPi / 4);
+static Scaled s_ScaledPiDiv2; // Initialized below
+static Scaled s_ScaledPiDiv4;
 
 // Precision and epsilon
 
-static const Scaled s_ScaledEpsilon("0.000001"); // 1e-6
+static const Scaled s_ScaledEpsilon("1e-7");
+static int s_iDividePrecision = 20;
 // We calculate divide to 7 decimals and check to one less
-static int s_iPrecision = 20;
 #define CHECKING_EPSILON 1e-6
 
 void Scaled::clear() {
@@ -386,7 +387,7 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 	Unsigned remainder = div0.remainder;
     
     // Compute decimal places up to the requested precision
-	for (int i = 1; i <= s_iPrecision; i++) {
+	for (int i = 1; i <= s_iDividePrecision; i++) {
 		remainder.multiplyByTen();
 		const UnsignedDivide div1 = Unsigned::divideWithRem(remainder, b);
 		resultString += div1.quotient.firstDigitAsChar();
@@ -581,6 +582,11 @@ Scaled Scaled::tan(const Scaled &xIn) {
     if (x.isNegative()) {
         x.flipSign(); // x = -x
         sign = -1;
+	}
+
+	if (s_ScaledPiDiv4.isZero()) {
+		s_ScaledPiDiv4 = s_ScaledPi / 4;
+		s_ScaledPiDiv2 = s_ScaledPi / 2;
 	}
 
     // Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
@@ -921,6 +927,24 @@ bool Scaled::testAll() {
 	if (isHome()) {
 		testLimit = 120;
 	}
+
+	/*
+	Scaled a = s_ScaledPi / 2;
+	if (eq(s_ScaledPiDiv2.toDouble(), a.toDouble())) {
+		printf("pi/2 is good\n");
+	}
+	else  {
+		printf("pi/2 is bad\n");
+	}
+
+	Scaled b = s_ScaledPi / 4;
+	if (eq(s_ScaledPiDiv4.toDouble(), b.toDouble())) {
+		printf("pi/4 is good\n");
+	}
+	else  {
+		printf("pi/4 is bad.  Div4=%g b=%g\n", s_ScaledPiDiv4.toDouble(), b.toDouble());
+	}
+	*/
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25", "123456789012345678901234567890" };
