@@ -41,7 +41,7 @@ example_use_of_scaled: Makefile $(HEADERS) util.o unsigned.o integer.o scaled.o 
 	$(CC) $(CFLAGS) -o $@ util.o unsigned.o integer.o scaled.o example_use_of_scaled.o $(LDFLAGS)
 
 check: bc
-	./bc -t; \
+	./bc -t
 
 check_to_file: bc
 	./bc -t > _tests.txt 2>&1
