@@ -31,9 +31,6 @@ install: all
 bc.exe: Makefile bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o (LDFLAGS)
 
-check_win: bc.exe
-	bc.exe -t
-
 bc: Makefile $(HEADERS) bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o $(LDFLAGS)
 
@@ -44,16 +41,19 @@ example_use_of_scaled: Makefile $(HEADERS) util.o unsigned.o integer.o scaled.o 
 	$(CC) $(CFLAGS) -o $@ util.o unsigned.o integer.o scaled.o example_use_of_scaled.o $(LDFLAGS)
 
 check: bc
-	./bc -t
+	./bc -t; \
 
 check_to_file: bc
 	./bc -t > _tests.txt 2>&1
 
+check_win: bc
+	bc.exe -t
+
 check_generalized: bc
-    # Not currently used
-    # Use POSIX [ rather than [[
-    @if [ "$(DETECTED_OS)" = "Windows" ]; then \
-        bc.exe -t; \
-    else \
-        ./bc -t; \
-    fi
+	# Not currently used
+	# Use POSIX [ rather than [[
+	@if [ "$(DETECTED_OS)" = "Windows" ]; then \
+		bc.exe -t; \
+	else \
+		./bc -t; \
+	fi
