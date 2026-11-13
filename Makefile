@@ -46,7 +46,7 @@ check: bc
 check_to_file: bc
 	./bc -t > _tests.txt 2>&1
 
-check_win: bc
+check_win: bc.exe
 	bc.exe -t
 
 check_generalized: bc
