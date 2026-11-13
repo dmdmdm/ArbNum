@@ -208,8 +208,8 @@ int Unsigned::firstDigitAsInt() const {
 	return mDigits[0];
 }
 
-int Unsigned::toInt() const {
-	return atoi(toString().c_str());
+unsigned int Unsigned::toUnsignedInt() const {
+	return (unsigned int)atoi(toString().c_str());
 }
 
 long Unsigned::toLong() const {
@@ -492,7 +492,7 @@ UnsignedDivide Unsigned::divideWithRemSlow(const Unsigned &dividend, const Unsig
 	UnsignedDivide result(0, dividend);
 
 	if (divisor <= s_UnsignedTwo) {
-		switch(divisor.toInt()) {
+		switch(divisor.toUnsignedInt()) {
 		case 0:
 			ArbNum_log("Division by zero\n");
 			result.quotient.mkError();
@@ -547,7 +547,7 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 	runningDividend.append(UNASSIGNED, (long)dividend.length());
 
 	if (divisor <= s_UnsignedTwo) {
-		switch(divisor.toInt()) {
+		switch(divisor.toUnsignedInt()) {
 		case 0:
 			ArbNum_log("Division by zero\n");
 			result.quotient.mkError();
@@ -724,7 +724,7 @@ Unsigned Unsigned::operator--(int) {
 
 bool Unsigned::testStoreStr(const char *in, const unsigned int correct) {
 	const Unsigned myunsigned(in);
-	const unsigned int result = myunsigned.toInt();
+	const unsigned int result = myunsigned.toUnsignedInt();
 	if (result != correct) {
 		fprintf(stderr, "Store Str %u = %u (Unsigned) != %u (unsigned int) fail\n", correct, result, correct);
 	}
@@ -775,7 +775,7 @@ bool Unsigned::testCompare(const unsigned int a, const unsigned int b) {
 }
 
 bool Unsigned::testAdd(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::add(a, b).toInt();
+	const unsigned int result = Unsigned::add(a, b).toUnsignedInt();
 	const unsigned int correct = a + b;
 	if (result != correct) {
 		fprintf(stderr, "%u + %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -784,7 +784,7 @@ bool Unsigned::testAdd(const unsigned int a, const unsigned int b) {
 }
 
 bool Unsigned::testSubtract(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::subtract(a, b).toInt();
+	const unsigned int result = Unsigned::subtract(a, b).toUnsignedInt();
 	const unsigned int correct = a - b;
 	if (result != correct) {
 		fprintf(stderr, "%u - %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -793,7 +793,7 @@ bool Unsigned::testSubtract(const unsigned int a, const unsigned int b) {
 }
 
 bool Unsigned::testMultiply(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::multiply(a, b).toInt();
+	const unsigned int result = Unsigned::multiply(a, b).toUnsignedInt();
 	const unsigned int correct = a * b;
 	if (result != correct) {
 		fprintf(stderr, "%u * %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -802,7 +802,7 @@ bool Unsigned::testMultiply(const unsigned int a, const unsigned int b) {
 }
 
 bool Unsigned::testDivide(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::divide(a, b).toInt();
+	const unsigned int result = Unsigned::divide(a, b).toUnsignedInt();
 	const unsigned int correct = a / b;
 	if (result != correct) {
 		fprintf(stderr, "%u / %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -811,7 +811,7 @@ bool Unsigned::testDivide(const unsigned int a, const unsigned int b) {
 }
 
 bool Unsigned::testMod(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::mod(a, b).toInt();
+	const unsigned int result = Unsigned::mod(a, b).toUnsignedInt();
 	const unsigned int correct = a % b;
 	if (result != correct) {
 		fprintf(stderr, "mod(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -820,7 +820,7 @@ bool Unsigned::testMod(const unsigned int a, const unsigned int b) {
 }
 
 bool Unsigned::testPow(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::pow(a, b).toInt();
+	const unsigned int result = Unsigned::pow(a, b).toUnsignedInt();
 	const unsigned int correct = (unsigned int) powLong(a, b);
 	if (result != correct) {
 		fprintf(stderr, "pow(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -838,7 +838,7 @@ unsigned int Unsigned::gcdNativeUnsigned(const unsigned int a, const unsigned in
 }
 
 bool Unsigned::testGcd(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::gcd(a, b).toInt();
+	const unsigned int result = Unsigned::gcd(a, b).toUnsignedInt();
 	const unsigned int correct = gcdNativeUnsigned(a, b);
 	if (result != correct) {
 		fprintf(stderr, "gcd(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -853,7 +853,7 @@ unsigned int Unsigned::lcmNativeUnsigned(const unsigned int a, const unsigned in
 }
 
 bool Unsigned::testLcm(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::lcm(a, b).toInt();
+	const unsigned int result = Unsigned::lcm(a, b).toUnsignedInt();
 	const unsigned int correct = lcmNativeUnsigned(a, b);
 	if (result != correct) {
 		fprintf(stderr, "lcm(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
@@ -870,7 +870,7 @@ unsigned int Unsigned::sqrtNativeUnsigned(const unsigned int a) {
 }
 
 bool Unsigned::testSqrt(const unsigned int a) {
-	const unsigned int result = Unsigned::sqrt(a).toInt();
+	const unsigned int result = Unsigned::sqrt(a).toUnsignedInt();
 	const unsigned int correct = sqrtNativeUnsigned(a);
 	if (result != correct) {
 		fprintf(stderr, "sqrt(%u) = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
@@ -895,7 +895,7 @@ unsigned int Unsigned::isPrimeNativeUnsigned(const unsigned int a) {
 }
 
 bool Unsigned::testIsPrime(const unsigned int a) {
-	const unsigned int result = Unsigned::isPrime(a).toInt();
+	const unsigned int result = Unsigned::isPrime(a).toUnsignedInt();
 	const unsigned int correct = isPrimeNativeUnsigned(a);
 	if (result != correct) {
 		fprintf(stderr, "isPrime(%u) = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
@@ -909,7 +909,7 @@ unsigned int Unsigned::factorialNativeUnsigned(const unsigned int n) {
 }
 
 bool Unsigned::testFactorial(const unsigned int a) {
-	const unsigned int result = Unsigned::factorial(a).toInt();
+	const unsigned int result = Unsigned::factorial(a).toUnsignedInt();
 	const unsigned int correct = factorialNativeUnsigned(a);
 	if (result != correct) {
 		fprintf(stderr, "%u! = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);

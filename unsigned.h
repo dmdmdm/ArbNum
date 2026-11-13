@@ -10,6 +10,7 @@
 class UnsignedDivide;
 
 class Unsigned {
+	// We use long rather than size_t in all function prototypes
 	typedef std::vector<int> digits_t;
 	digits_t mDigits;
 
@@ -42,7 +43,7 @@ public:
 	std::string toString() const;
 	char firstDigitAsChar() const;
 	int firstDigitAsInt() const;
-	int toInt() const; // Loses precision (will be always be positive)
+	unsigned int toUnsignedInt() const; // Loses precision (will be always be positive)
 	long toLong() const; // Loses precision
 	long long toLongLong() const; // Loses precision
 	void set(const Unsigned &);
