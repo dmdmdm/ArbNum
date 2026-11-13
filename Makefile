@@ -32,7 +32,7 @@ bc.exe: Makefile bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scale
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o (LDFLAGS)
 
 check_win: bc.exe
-	dir
+	bc.exe -t
 
 bc: Makefile $(HEADERS) bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o
 	$(CC) $(CFLAGS) -o $@ bc.o bc_tokenizer.o bc_calc.o util.o unsigned.o integer.o scaled.o $(LDFLAGS)
