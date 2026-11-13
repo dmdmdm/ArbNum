@@ -37,7 +37,7 @@ public:
 	void append(const int digit, const long numberOfDigits);
 	void shiftLeft(const long numberOfDigits) { append(0, numberOfDigits); }
 	void shiftRight(const long numberOfDigits);
-	long length() const { return mDigits.size(); }
+	long length() const { return (long)mDigits.size(); }
 	void saveNumber(const char *);
 	std::string toString() const;
 	char firstDigitAsChar() const;
