@@ -48,3 +48,12 @@ check: bc
 
 check_to_file: bc
 	./bc -t > _tests.txt 2>&1
+
+check_generalized: bc
+    # Not currently used
+    # Use POSIX [ rather than [[
+    @if [ "$(DETECTED_OS)" = "Windows" ]; then \
+        bc.exe -t; \
+    else \
+        ./bc -t; \
+    fi
