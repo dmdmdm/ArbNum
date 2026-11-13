@@ -171,7 +171,11 @@ Scaled::Scaled(const long long ll) {
 }
 
 bool Scaled::isZero() const {
-	return mUnscaled.isZero();
+	return mUnscaled.isZero() && mExp == 0;
+}
+
+bool Scaled::isOne() const {
+	return mUnscaled.isOne() && mExp == 0;
 }
 
 bool Scaled::isCloseToZero() const {
@@ -433,16 +437,18 @@ Scaled Scaled::floor(const Scaled &a) {
 
 Scaled Scaled::round(const Scaled &x) {
 	Scaled t = floor(x);			// integer part, toward zero
-	Scaled frac = x - t;			// fractional part, same sign as x 
+	const Scaled frac = x - t;		// fractional part, same sign as x 
 
-    if (frac >= 0.5)  t += 1.0;
-    else if (frac <= -0.5) t -= 1.0;
+    if (frac >= 0.5) { t += 1.0; }
+    else if (frac <= -0.5) { t -= 1.0; };
 
     return t;
 }
 
 Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
-	if (exp.isZero()) return s_ScaledOne;
+	if (base.isZero()) { return s_ScaledZero; }
+	if (base.isOne()) { return s_ScaledOne; }
+	if (exp.isZero()) { return s_ScaledOne; }
 
 	if (exp.isInteger()) {
 		const Scaled x = pow(base, halfInt(exp)); // Recursive
@@ -455,12 +461,11 @@ Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
 		}
 	}
 	else {
-		// Probably wrong
-		Scaled result = base;
-		for (Scaled i = 1; i < exp; i++) {
-			result *= base;
-		}
-		return result;
+		// This is tricky
+		ArbNum_log("pow: fractional exponents are not yet supported\n");
+		Scaled out;
+		out.mkError();
+		return out;
 	}
 }
 

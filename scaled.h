@@ -45,6 +45,7 @@ public:
 
 	// Methods
 	bool isZero() const;
+	bool isOne() const;
 	bool isCloseToZero() const;
 	bool isNegative() const;
 	bool isPositive() const; // Greater than zero

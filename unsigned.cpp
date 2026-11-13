@@ -95,7 +95,6 @@ bool Unsigned::isSmall(const int n) const {
 }
 
 inline bool isOdd(const int n) { return n % 2 != 0; }
-
 inline bool isEven(const int n) { return ! isOdd(n); }
 
 bool Unsigned::isOdd() const {
