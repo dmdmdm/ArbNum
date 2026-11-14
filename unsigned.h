@@ -11,6 +11,7 @@ class UnsignedDivide;
 
 class Unsigned {
 	// We use long rather than size_t in all function prototypes
+
 	typedef std::vector<int> digits_t;
 	digits_t mDigits;
 
@@ -25,7 +26,7 @@ class Unsigned {
 	void mkError();
 	void prepend(const int digit) { mDigits.insert(mDigits.begin(), digit); }
 	void append(const int digit) { mDigits.push_back(digit); }
-	static Unsigned findDivisibleSizedChunk(const Unsigned &runningDividend, const Unsigned &dividend, const Unsigned &divisor, int &iDividendPos, bool &fits);
+	static Unsigned findDivisibleSizedChunk(const Unsigned &runningDividend, const Unsigned &dividend, const Unsigned &divisor, long &iDividendPos, bool &fits);
 	static UnsignedDivide divideByOneWithRem(const Unsigned &);
 	static UnsignedDivide divideByTwoWithRem(const Unsigned &);
 	static UnsignedDivide divideWithRemSlow(const Unsigned &, const Unsigned &);
@@ -38,21 +39,24 @@ public:
 	void append(const int digit, const long numberOfDigits);
 	void shiftLeft(const long numberOfDigits) { append(0, numberOfDigits); }
 	void shiftRight(const long numberOfDigits);
-	long length() const { return (long)mDigits.size(); }
+	size_t size() const { return mDigits.size(); } // Use only when you really need size_t
+	long length() const { return (long)mDigits.size(); } // Prefered
+	bool isEmpty() const { return mDigits.empty(); }
 	void saveNumber(const char *);
 	std::string toString() const;
 	char firstDigitAsChar() const;
 	int firstDigitAsInt() const;
+	int lastDigitAsInt() const;
 	unsigned int toUnsignedInt() const; // Loses precision (will be always be positive)
 	long toLong() const; // Loses precision
 	long long toLongLong() const; // Loses precision
 	void set(const Unsigned &);
 	bool isZero() const;
-	bool isSmall(const int) const;
-	bool isOne() const { return isSmall(1); }
-	bool isTwo() const { return isSmall(2); }
-	bool isThree() const { return isSmall(3); }
-	bool isFive() const { return isSmall(5); }
+	bool isSmallNumber(const int) const;
+	bool isOne() const { return isSmallNumber(1); }
+	bool isTwo() const { return isSmallNumber(2); }
+	bool isThree() const { return isSmallNumber(3); }
+	bool isFive() const { return isSmallNumber(5); }
 	bool isOdd() const;
 	bool isEven() const;
 	void multiplyByTen() { append(0); }
@@ -94,7 +98,7 @@ public:
 	Unsigned(const long long);
 	Unsigned(const bool);
 
-	int &operator[](const int i) { return mDigits[(size_t)i]; }
+	int &operator[](const long i) { return mDigits[(size_t)i]; }
 	Unsigned operator+=(const Unsigned &other) { add(other); return *this; }
 	Unsigned operator-=(const Unsigned &other) { subtract(other); return *this; }
 	Unsigned operator*=(const Unsigned &other) { multiply(other); return *this; }

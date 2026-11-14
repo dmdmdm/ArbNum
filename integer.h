@@ -13,7 +13,7 @@ class IntegerDivide;
 class Integer {
 	typedef enum { SPEC_NORMAL, SPEC_ERROR, SPEC_IGNORE } SpecialType;
 	SpecialType	mSpecial = SPEC_NORMAL;
-	int 		mSign;	// -1 or 1
+	int 		mSign = 1;	// -1 or 1
 	Unsigned	mUnsigned;
 
 public:

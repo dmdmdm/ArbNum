@@ -237,7 +237,7 @@ std::string Scaled::toString() const {
 			str = '0' + str;
 		}
 
-		str.insert(str.length() - digits, 1, '.');
+		str.insert((size_t)str.length() - digits, 1, '.');
 
 		if (mUnscaled.isNegative()) {
 			str = '-' + str;
@@ -387,24 +387,24 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
     
     // Integer division for the whole number part
 	const UnsignedDivide div0 = Unsigned::divideWithRem(a, b);
-	std::string resultString = div0.quotient.toString() + ".";
+	std::string outString = div0.quotient.toString() + ".";
 	Unsigned remainder = div0.remainder;
     
     // Compute decimal places up to the requested precision
 	for (int i = 1; i <= s_iDividePrecision; i++) {
 		remainder.multiplyByTen();
 		const UnsignedDivide div1 = Unsigned::divideWithRem(remainder, b);
-		resultString += div1.quotient.firstDigitAsChar();
+		outString += div1.quotient.firstDigitAsChar();
 		remainder = div1.remainder;
 		if (remainder == 0) break;
 	}
 
     // Apply the correct sign
 	if (isNegative) {
-		resultString = "-" + resultString;
+		outString = "-" + outString;
 	}
 
-	out.saveNumber(resultString.c_str());
+	out.saveNumber(outString.c_str());
 	return out;
 }
 
@@ -436,8 +436,8 @@ Scaled Scaled::floor(const Scaled &a) {
 }
 
 Scaled Scaled::round(const Scaled &x) {
-	Scaled t = floor(x);			// integer part, toward zero
-	const Scaled frac = x - t;		// fractional part, same sign as x 
+	Scaled t = floor(x);			// Integer part, toward zero
+	const Scaled frac = x - t;		// Fractional part, same sign as x 
 
     if (frac >= 0.5) { t += 1.0; }
     else if (frac <= -0.5) { t -= 1.0; };
@@ -505,9 +505,9 @@ Scaled Scaled::factorial(const Scaled &n) {
 Scaled Scaled::sqrt(const Scaled &a) {
 	if (a.isNegative()) {
 		ArbNum_log("sqrt: Attempt to take the square root of a negative number\n");
-		Scaled result;
-		result.mkError();
-		return result;
+		Scaled out;
+		out.mkError();
+		return out;
 	}
 
 	Scaled x0 = half(a);
@@ -605,14 +605,14 @@ Scaled Scaled::tan(const Scaled &xIn) {
 	const Scaled c = cos(x);
 
     // Combine
-	Scaled result;
+	Scaled out;
 	if (invert) {
-		result = c / s;
+		out = c / s;
 	}
 	else {
-		result = s / c;
+		out = s / c;
 	}
-    return sign * result;
+    return sign * out;
 }
 
 void Scaled::set(const Scaled &other) {

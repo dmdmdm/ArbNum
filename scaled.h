@@ -13,7 +13,7 @@ class Scaled {
 	SpecialType	mSpecial = SPEC_NORMAL;
 	Integer mUnscaled; // The unscaled value
 	long mExp = 0; // Exponent (Value = mUnscaled * 10 ^ -mExp)
-	// Using a long for the exponent means its not unlimited.
+	// Using a long for the exponent means there is a limit on the size of our numbers.
 	// The POSIX bc does the same thing.
 
 	void clear();

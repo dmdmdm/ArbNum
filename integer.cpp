@@ -136,57 +136,57 @@ int Integer::compare(const Integer &a, const Integer &b) {
 }
 
 Integer Integer::add(const Integer &a, const Integer &b) {
-	Integer result;
+	Integer out;
 	if (a.isPositiveOrZero() && b.isPositiveOrZero()) {
 		// Both positive => will stay positive
-		result.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
+		out.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
 	}
 	else if (a.isPositiveOrZero() && b.isNegativeOrZero()) {
 		// Remove sign from other, subtract other from this
 		Integer workingB(b);
 		workingB.mkPositive();
-		result = Integer::subtract(a, workingB); // Need to use Integer::subtract() because it checks to see which larger
+		out = Integer::subtract(a, workingB); // Need to use Integer::subtract() because it checks to see which larger
 	}
 	else if (a.isNegativeOrZero() && b.isPositiveOrZero()) {
 		// -a + b = b - a
 		Integer workingA(a);
 		workingA.mkPositive();
-		result = Integer::subtract(b, workingA); // Need to use Integer::subtract() because it checks to see which larger
+		out = Integer::subtract(b, workingA); // Need to use Integer::subtract() because it checks to see which larger
 	}
 	else if (a.isNegativeOrZero() && b.isNegativeOrZero()) {
 		// Both negative => will stay negative
-		result.mkNegative();
-		result.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
+		out.mkNegative();
+		out.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
 	}
 	else {
 		ArbNum_log("add: unknown case\n");
-		result.mkError();
+		out.mkError();
 	}
-	return result;
+	return out;
 }
 
 Integer Integer::subtract(const Integer &a, const Integer &b) {
-	Integer result;
+	Integer out;
 	if (a.isPositiveOrZero() && b.isPositiveOrZero()) {
 		if (a.mUnsigned < b.mUnsigned) {
 			// a - b = - (b - a)
-			result.mkNegative();
-			result.mUnsigned = Unsigned::subtract(b.mUnsigned, a.mUnsigned);
+			out.mkNegative();
+			out.mUnsigned = Unsigned::subtract(b.mUnsigned, a.mUnsigned);
 		}
 		else {
 			// Easy a - b
-			result.mUnsigned = Unsigned::subtract(a.mUnsigned, b.mUnsigned);
+			out.mUnsigned = Unsigned::subtract(a.mUnsigned, b.mUnsigned);
 		}
 	}
 	else if (a.isPositiveOrZero() && b.isNegativeOrZero()) {
 		// a - (-b) = a + b
 		// Sign is already positive
-		result.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
+		out.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
 	}
 	else if (a.isNegativeOrZero() && b.isPositiveOrZero()) {
 		// (-a) - b = - (a + b)
-		result.mkNegative();
-		result.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
+		out.mkNegative();
+		out.mUnsigned = Unsigned::add(a.mUnsigned, b.mUnsigned);
 	}
 	else if (a.isNegativeOrZero() && b.isNegativeOrZero()) {
 		// (-a) - (-b) = b - a
@@ -194,20 +194,20 @@ Integer Integer::subtract(const Integer &a, const Integer &b) {
 		Integer workingB(b);
 		workingA.mkPositive();
 		workingB.mkPositive();
-		result = Integer::subtract(workingB, workingA);	// Recursive
+		out = Integer::subtract(workingB, workingA);	// Recursive
 	}
 	else{
 		ArbNum_log("subtract: unknown case\n");
-		result.mkError();
+		out.mkError();
 	}
-	return result;
+	return out;
 }
 
 Integer Integer::multiply(const Integer &a, const Integer &b) {
-	Integer result;
-	result.mUnsigned = Unsigned::multiply(a.mUnsigned, b.mUnsigned);
-	result.mSign = a.mSign * b.mSign;
-	return result;
+	Integer out;
+	out.mUnsigned = Unsigned::multiply(a.mUnsigned, b.mUnsigned);
+	out.mSign = a.mSign * b.mSign;
+	return out;
 }
 
 Integer Integer::half(const Integer &a) {
@@ -216,43 +216,43 @@ Integer Integer::half(const Integer &a) {
 
 // https://en.wikipedia.org/wiki/Division_algorithm
 IntegerDivide Integer::divideWithRem(const Integer &dividend, const Integer &divisor) {
-	IntegerDivide result;
+	IntegerDivide out;
 
 	if (divisor.isZero()) {
 		ArbNum_log("Division by zero\n");
-		result.quotient.mkError();
-		return result;
+		out.quotient.mkError();
+		return out;
 	}
 
 	if (divisor.isNegative()) {
 		Integer workingDivisor(divisor);
 		workingDivisor.mkPositive();
-		result = divideWithRem(dividend, workingDivisor);	// Recursive
-		result.quotient.flipSign();
-		return result;
+		out = divideWithRem(dividend, workingDivisor);	// Recursive
+		out.quotient.flipSign();
+		return out;
 	}
 
 	if (dividend.isNegative()) {
 		Integer workingDividend(dividend);
 		workingDividend.mkPositive();
-		result = divideWithRem(workingDividend, divisor);	// Recursive
-		if (result.remainder.isZero()) {
-			result.quotient.flipSign();
-			return result;
+		out = divideWithRem(workingDividend, divisor);	// Recursive
+		if (out.remainder.isZero()) {
+			out.quotient.flipSign();
+			return out;
 		}
 		else {
-			result.quotient.flipSign();
+			out.quotient.flipSign();
 			// We differ from the page Wikipedia page here
-			result.remainder.flipSign();
-			return result;
+			out.remainder.flipSign();
+			return out;
 		}
 	}
 
 	// Now, both are positive
 	const UnsignedDivide udivide = Unsigned::divideWithRem(dividend.mUnsigned, divisor.mUnsigned);
-	result.quotient.mUnsigned = udivide.quotient;
-	result.remainder.mUnsigned = udivide.remainder;
-	return result;
+	out.quotient.mUnsigned = udivide.quotient;
+	out.remainder.mUnsigned = udivide.remainder;
+	return out;
 }
 
 Integer Integer::divide(const Integer &dividend, const Integer &divisor) {
@@ -276,13 +276,13 @@ Integer Integer::doNot(const Integer &a) {
 }
 
 Integer Integer::pow(const Integer &base, const Integer &exp) {
-	Integer result = Unsigned::pow(base.mUnsigned, exp.mUnsigned);
+	Integer out = Unsigned::pow(base.mUnsigned, exp.mUnsigned);
 
 	if (base.isNegative()) {
-		result.mSign = exp.mUnsigned.isEven() ? 1 : -1;
+		out.mSign = exp.mUnsigned.isEven() ? 1 : -1;
 	}
 
-	return result;
+	return out;
 }
 
 Integer Integer::gcd(const Integer &a, const Integer &b) {
@@ -297,9 +297,9 @@ Integer Integer::lcm(const Integer &a, const Integer &b) {
 
 Integer Integer::sqrt(const Integer &a) {
 	if (a.isNegative()) {
-		Integer result;
-		result.mkError();
-		return result;
+		Integer out;
+		out.mkError();
+		return out;
 	}
 	return Unsigned::sqrt(a.mUnsigned);
 }

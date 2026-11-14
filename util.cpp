@@ -162,11 +162,11 @@ long powLong(const long base, const long exp) {
 	}
 
 	// Non-recursive so can handle really big numbers
-	long result = 1;
+	long out = 1;
 	for (long i = 0; i < exp; i++) {
-		result *= base;
+		out *= base;
 	}
-	return result;
+	return out;
 }
 
 long sqrtLong(const long a) {
@@ -177,7 +177,7 @@ bool testPow(const long base, const long exp) {
 	const long result = powLong(base, exp);
 	const long correct = (long)std::pow(base, exp);
 	if (result != correct) {
-		printf("testUtil: powLong %ld ^ %ld = %ld != %ld fail\n", base, exp, result, correct);
+		printf("testUtil: powLong %ld ^ %ld = %ld (powLong) != %ld (std:pow) fail\n", base, exp, result, correct);
 	}
 	return result == correct;
 }
@@ -188,6 +188,7 @@ void utilTest() {
 	const long startMs = currentMillis();
 
 	// Regular numbers
+	printf("Regular numbers\n");
 	for (long a = 0; a < 10; a++) {
 		for (long b = 16; b >= 0; b--) {
 			if (testPow(a, b)) {
@@ -200,6 +201,7 @@ void utilTest() {
 	}
 
 	// Powers of 10
+	printf("Powers of 10\n");
 	for (long exp = 0; exp < 18; exp++) {
 		if (testPow(10, exp)) {
 			nSuccess++;

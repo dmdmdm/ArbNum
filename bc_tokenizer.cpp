@@ -19,7 +19,7 @@ bool Tokenizer::isEol() {
 
 int Tokenizer::getChar() {
 	if (isEol()) return EOF;
-	return mLine[mPos++];
+	return mLine[(size_t)mPos++];
 }
 
 void Tokenizer::ungetChar() {

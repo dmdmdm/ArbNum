@@ -27,14 +27,14 @@ static const Unsigned s_UnsignedSix(6);
 static const int UNASSIGNED = -1;
 
 void Unsigned::pad(const long wantedLength) {
-	mDigits.reserve(wantedLength);
+	mDigits.reserve((size_t)wantedLength);
 	while ((long)mDigits.size() < wantedLength) {
 		prepend(0);
 	}
 }
 
 void Unsigned::append(const int digit, const long numberOfDigits) {
-	mDigits.insert(mDigits.end(), numberOfDigits, digit);
+	mDigits.insert(mDigits.end(), (size_t) numberOfDigits, digit);
 }
 
 void Unsigned::shiftRight(const long numberOfDigits) {
@@ -80,7 +80,7 @@ void Unsigned::zero() {
 }
 
 bool Unsigned::isZero() const {
-	if (length() == 0) return true;
+	if (isEmpty()) return true;
 
 	for (digits_t::const_iterator it = mDigits.begin(); it != mDigits.end(); it++) {
 		if (*it != 0) return false;
@@ -89,7 +89,7 @@ bool Unsigned::isZero() const {
 	return true;
 }
 
-bool Unsigned::isSmall(const int n) const {
+bool Unsigned::isSmallNumber(const int n) const {
 	if (length() != 1) return false;
 	return mDigits[0] == n;
 }
@@ -98,15 +98,13 @@ inline bool isOdd(const int n) { return n % 2 != 0; }
 inline bool isEven(const int n) { return ! isOdd(n); }
 
 bool Unsigned::isOdd() const {
-	if (length() == 0) return false;
-	const int lastDigit = mDigits[length() - 1];
-	return ::isOdd(lastDigit);
+	if (isEmpty()) return false;
+	return ::isOdd(lastDigitAsInt());
 }
 
 bool Unsigned::isEven() const {
-	if (length() == 0) return true;
-	const int lastDigit = mDigits[length() - 1];
-	return ::isEven(lastDigit);
+	if (isEmpty()) return true;
+	return ::isEven(lastDigitAsInt());
 }
 
 void Unsigned::trimLeading() {
@@ -199,13 +197,18 @@ std::string Unsigned::toString() const {
 }
 
 char Unsigned::firstDigitAsChar() const {
-	if (mDigits.empty()) return 0;
+	if (isEmpty()) return 0;
 	return intToChar(mDigits[0]);
 }
 
 int Unsigned::firstDigitAsInt() const {
-	if (mDigits.empty()) return 0;
+	if (isEmpty()) return 0;
 	return mDigits[0];
+}
+
+int Unsigned::lastDigitAsInt() const {
+	if (isEmpty()) return 0;
+	return mDigits[size() - 1];
 }
 
 unsigned int Unsigned::toUnsignedInt() const {
@@ -296,7 +299,7 @@ int Unsigned::compare(const Unsigned &aIn, const Unsigned &bIn) {
 
 	padShorterNumber(pA, pB, padded);
 
-	for (long i = 0; i < pA->length(); i++) {
+	for (size_t i = 0; i < pA->size(); i++) {
 		if (pA->mDigits[i] < pB->mDigits[i]) return -1;
 		if (pA->mDigits[i] > pB->mDigits[i]) return 1;
 	}
@@ -310,7 +313,7 @@ inline void Unsigned::addMutable(Unsigned &workingA, Unsigned &workingB) {
 	padShorterNumber(workingA, workingB);
 
 	int carry = 0;
-	for (int i = (int)workingA.length() - 1; i >= 0; i--) {
+	for (long i = workingA.length() - 1; i >= 0; i--) {
 		int digit = workingA[i] + workingB[i] + carry;
 		if (digit > 9) {
 			carry = 1;
@@ -319,7 +322,7 @@ inline void Unsigned::addMutable(Unsigned &workingA, Unsigned &workingB) {
 		else {
 			carry = 0;
 		}
-		workingA[i] = digit;
+		workingA[(size_t)i] = digit;
 	}
 
 	if (carry > 0) {
@@ -329,7 +332,7 @@ inline void Unsigned::addMutable(Unsigned &workingA, Unsigned &workingB) {
 	workingA.trimLeading();
 }
 
-// result = a + b
+// out = a + b
 Unsigned Unsigned::add(const Unsigned &a, const Unsigned &b) {
 	Unsigned workingA(a);
 	Unsigned workingB(b);
@@ -345,7 +348,7 @@ void Unsigned::subtractMutable(Unsigned &workingA, Unsigned &workingB) {
 	padShorterNumber(workingA, workingB);
 
 	int borrow = 0;
-	for (int i = (int)workingA.length() - 1; i >= 0; i--) {
+	for (long i = workingA.length() - 1; i >= 0; i--) {
 		workingA[i] = workingA[i] - borrow;
 		if (workingB[i] > workingA[i]) {
 			workingA[i] = workingA[i] + 10;
@@ -381,25 +384,25 @@ Unsigned Unsigned::multiply(const Unsigned &a, const Unsigned &b) {
 	Unsigned	partProduct;
 
 	partProduct.pad(a.length() + b.length());
-	for (int i = 0; i < (int)b.length(); i++) {
-		const int bIndex = (int)b.length() - 1 - i;
-		const int bDigit = b.mDigits[bIndex];
+	for (long i = 0; i < b.length(); i++) {
+		const long bIndex = b.length() - 1 - i;
+		const int bDigit = b.mDigits[(size_t)bIndex];
 
 		int carry = 0;
 		partProduct.zero();
-		int j = 0;
-		for (; j < (int)a.length(); j++) {
-			const int aIndex = (int)a.length() -1 - j;
-			const int aDigit = a.mDigits[aIndex];
+		long j = 0;
+		for (; j < a.length(); j++) {
+			const long aIndex = a.length() -1 - j;
+			const int aDigit = a.mDigits[(size_t)aIndex];
 			const int digit = bDigit * aDigit + carry;
-			const int ppIndex = (int)partProduct.length() -1 - j - i;
-			partProduct.mDigits[ppIndex] = digit % 10;
+			const long ppIndex = partProduct.length() -1 - j - i;
+			partProduct.mDigits[(size_t)ppIndex] = digit % 10;
 			carry = digit / 10;
 		}
 
 		for(; carry > 0; j++) {
-			const int ppIndex = (int)partProduct.length() -1 - j - i;
-			partProduct.mDigits[ppIndex] = carry % 10;
+			const long ppIndex = partProduct.length() -1 - j - i;
+			partProduct.mDigits[(size_t)ppIndex] = carry % 10;
 			carry /= 10;
 		}
 
@@ -411,22 +414,22 @@ Unsigned Unsigned::multiply(const Unsigned &a, const Unsigned &b) {
 }
 
 UnsignedDivide Unsigned::divideByOneWithRem(const Unsigned &dividend) {
-	UnsignedDivide result(dividend, 0);
-	return result;
+	UnsignedDivide out(dividend, 0);
+	return out;
 }
 
 // https://en.wikipedia.org/wiki/Division_by_two
 UnsignedDivide Unsigned::divideByTwoWithRem(const Unsigned &dividend) {
 	Unsigned working(dividend);
-	UnsignedDivide result;
+	UnsignedDivide out;
 
 	working.prepend(0);
 
-	const int len1 = (int)working.length() - 1;
+	const long len1 = working.length() - 1;
 	int first = 0, second = 0;
-	for (int i = 0; i < len1; i++) {
-		first = working.mDigits[i];
-		second = working.mDigits[i + 1];
+	for (long i = 0; i < len1; i++) {
+		first = working.mDigits[(size_t)i];
+		second = working.mDigits[(size_t)i + 1];
 		int save = 0;
 		if (::isEven(first)) {
 			switch(second) {
@@ -476,27 +479,27 @@ UnsignedDivide Unsigned::divideByTwoWithRem(const Unsigned &dividend) {
 				 break;
 			}
 		}
-		result.quotient.append(save);
+		out.quotient.append(save);
 	}
 
 	if (::isOdd(second)) {
-		result.remainder = 1;
+		out.remainder = 1;
 	}
 
-	result.trimLeading();
-	return result;
+	out.trimLeading();
+	return out;
 }
 
 // Division by repeated subtraction
 UnsignedDivide Unsigned::divideWithRemSlow(const Unsigned &dividend, const Unsigned &divisor) {
-	UnsignedDivide result(0, dividend);
+	UnsignedDivide out(0, dividend);
 
 	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toUnsignedInt()) {
 		case 0:
 			ArbNum_log("Division by zero\n");
-			result.quotient.mkError();
-			return result;
+			out.quotient.mkError();
+			return out;
 		case 1:
 			return divideByOneWithRem(dividend);
 		case 2:
@@ -504,26 +507,26 @@ UnsignedDivide Unsigned::divideWithRemSlow(const Unsigned &dividend, const Unsig
 		}
 	}
 
-	while (result.remainder >= divisor) {
-		result.quotient++;
-		result.remainder.subtract(divisor);
+	while (out.remainder >= divisor) {
+		out.quotient++;
+		out.remainder.subtract(divisor);
 	}
 
-	result.trimLeading();
-	return result;
+	out.trimLeading();
+	return out;
 }
 
 // Helper for divideWithRemFast()
-Unsigned Unsigned::findDivisibleSizedChunk(const Unsigned &runningDividend, const Unsigned &dividend, const Unsigned &divisor, int &iDividendPos, bool &fits) {
+Unsigned Unsigned::findDivisibleSizedChunk(const Unsigned &runningDividend, const Unsigned &dividend, const Unsigned &divisor, long &lDividendPos, bool &fits) {
 	Unsigned chunk;
-	iDividendPos = 0;
-	for (; iDividendPos < (int)dividend.length(); iDividendPos++) {
+	lDividendPos = 0;
+	for (; lDividendPos < dividend.length(); lDividendPos++) {
 		int digit;
-		if (runningDividend.mDigits[iDividendPos] >= 0) {
-			digit = runningDividend.mDigits[iDividendPos];
+		if (runningDividend.mDigits[(size_t)lDividendPos] >= 0) {
+			digit = runningDividend.mDigits[(size_t)lDividendPos];
 		}
 		else {
-			digit = dividend.mDigits[iDividendPos];
+			digit = dividend.mDigits[(size_t)lDividendPos];
 		}
 
 		chunk.append(digit);
@@ -541,17 +544,17 @@ Unsigned Unsigned::findDivisibleSizedChunk(const Unsigned &runningDividend, cons
 // https://en.wikipedia.org/wiki/Long_division#Example_with_multi-digit_divisor
 UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsigned &divisor) {
 	Unsigned runningDividend;
-	UnsignedDivide	result;
+	UnsignedDivide out;
 
-	result.quotient.pad(dividend.length());
-	runningDividend.append(UNASSIGNED, (long)dividend.length());
+	out.quotient.pad(dividend.length());
+	runningDividend.append(UNASSIGNED, dividend.length());
 
 	if (divisor <= s_UnsignedTwo) {
 		switch(divisor.toUnsignedInt()) {
 		case 0:
 			ArbNum_log("Division by zero\n");
-			result.quotient.mkError();
-			return result;
+			out.quotient.mkError();
+			return out;
 		case 1:
 			return divideByOneWithRem(dividend);
 		case 2:
@@ -559,26 +562,26 @@ UnsignedDivide Unsigned::divideWithRemFast(const Unsigned &dividend, const Unsig
 		}
 	}
 
-	int iDividendPos = 0;
+	long lDividendPos = 0;
 	bool fits;
 	for (;;) {
-		const Unsigned chunk = findDivisibleSizedChunk(runningDividend, dividend, divisor, iDividendPos, fits);
+		const Unsigned chunk = findDivisibleSizedChunk(runningDividend, dividend, divisor, lDividendPos, fits);
 		if (!fits) {
-			result.remainder = chunk;
+			out.remainder = chunk;
 			break;
 		}
 
 		const UnsignedDivide partDivide = divideWithRemSlow(chunk, divisor);
 		const Unsigned partProd = subtract(chunk, partDivide.remainder);
-		result.quotient[iDividendPos] = partDivide.quotient.mDigits[0];
+		out.quotient[lDividendPos] = partDivide.quotient.mDigits[0];
 
 		runningDividend = subtract(chunk, partProd);
-		runningDividend.append(UNASSIGNED, MKLONG(dividend.length() - iDividendPos - 1));
+		runningDividend.append(UNASSIGNED, dividend.length() - lDividendPos - 1);
 		runningDividend.pad(dividend.length()); 
 	}
 
-	result.trimLeading();
-	return result;
+	out.trimLeading();
+	return out;
 }
 
 UnsignedDivide Unsigned::divideWithRem(const Unsigned &a, const Unsigned &b) {
@@ -653,16 +656,16 @@ Unsigned Unsigned::random(const Unsigned &wantedDigits) {
 		srand((unsigned int)time(NULL));
 	}
 
-	Unsigned result;
+	Unsigned out;
 	const long n = wantedDigits.toLong();
 	if (n <= 0) return 0;
 	for (long i = 0; i < n; i++) {
 		const int r = rand();
 		const int digit = r % 10;
-		result.append(digit);
+		out.append(digit);
 	}
 
-	return result;
+	return out;
 }
 
 // By Soma Mbadiwe on https://stackoverflow.com/questions/15743192/check-if-number-is-prime-number
@@ -765,8 +768,8 @@ int Unsigned::compareNativeUnsigned(const unsigned int a, const unsigned int b) 
 }
 
 bool Unsigned::testCompare(const unsigned int a, const unsigned int b) {
-	const unsigned int result = Unsigned::compare(a, b);
-	const unsigned int correct = compareNativeUnsigned(a, b);
+	const int result = Unsigned::compare(a, b);
+	const int correct = compareNativeUnsigned(a, b);
 	if (result != correct) {
 		fprintf(stderr, "%u <> %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 		exit(0);
@@ -831,7 +834,7 @@ bool Unsigned::testPow(const unsigned int a, const unsigned int b) {
 unsigned int Unsigned::gcdNativeUnsigned(const unsigned int a, const unsigned int b) {
 	if (a < 0 || b < 0) {
 		ArbNum_log("gcdNativeUnsigned: got a negative number\n");
-		return -1;
+		return (unsigned int)-1;
 	}
 	if (a == 0) return b;
 	return gcdNativeUnsigned(b % a, a);
@@ -864,9 +867,9 @@ bool Unsigned::testLcm(const unsigned int a, const unsigned int b) {
 unsigned int Unsigned::sqrtNativeUnsigned(const unsigned int a) {
 	if (a < 0) {
 		ArbNum_log("sqrtUnsigned: got a negative number\n");
-		return -1;
+		return (unsigned int)-1;
 	}
-	return (int)std::sqrt(a);
+	return (unsigned int)std::sqrt(a);
 }
 
 bool Unsigned::testSqrt(const unsigned int a) {
@@ -955,7 +958,7 @@ bool Unsigned::testAll() {
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello" };
-	const int checkStrExpect[] = { 0, 0, 4, 4000, 0, -25 };
+	const unsigned int checkStrExpect[] = { 0, 0, 4, 4000, 0 };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
 	for (int i = 0; i < nCheckStr; i++) {
 		printf("Testing store str %s\n", checkStr[i]);
@@ -1004,11 +1007,11 @@ bool Unsigned::testAll() {
 		}
 	}
 
-	const unsigned int A_START = -10000;
+	const unsigned int A_START = 0;
 	const unsigned int A_END = 10000;
 	const unsigned int A_INC = 77;
 	const unsigned int B_START = 10000;
-	const unsigned int B_END = -10000;
+	const unsigned int B_END = 0;
 	const unsigned int B_INC = -88;
 
 	// Make vectors of test numbers
@@ -1091,7 +1094,7 @@ bool Unsigned::testAll() {
 		}
 	}
 
-	for (unsigned int a = -10; a <= 10; a++) {
+	for (unsigned int a = 0; a <= 10; a++) {
 		printf("Testing pow with %u on the left\n", a);
 		for (unsigned int b = 1; b <= 9; b++) {
 			if (testPow(a, b)) {
