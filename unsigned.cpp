@@ -322,7 +322,7 @@ inline void Unsigned::addMutable(Unsigned &workingA, Unsigned &workingB) {
 		else {
 			carry = 0;
 		}
-		workingA[(size_t)i] = digit;
+		workingA[i] = digit;
 	}
 
 	if (carry > 0) {
@@ -734,22 +734,22 @@ bool Unsigned::testStoreStr(const char *in, const unsigned int correct) {
 	return result == correct;
 }
 
-bool Unsigned::testStoreUnsigned(const unsigned int lCorrect) {
-	const Unsigned myunsigned(lCorrect);
-	const unsigned int lResult = atoi(myunsigned.toString().c_str());
-	if (lResult != lCorrect) {
-		fprintf(stderr, "Store unsigned %u = %u (Unsigned) != %u (unsigned int) fail\n", lCorrect, lResult, lCorrect);
+bool Unsigned::testStoreUnsigned(const unsigned int correct) {
+	const Unsigned myunsigned(correct);
+	const unsigned int result = (unsigned int)atoi(myunsigned.toString().c_str());
+	if (result != correct) {
+		fprintf(stderr, "Store unsigned %u = %u (Unsigned) != %u (unsigned int) fail\n", correct, result, correct);
 	}
-	return lResult == lCorrect;
+	return result == correct;
 }
 
-bool Unsigned::testStoreLong(const long lCorrect) {
-	const Unsigned myunsigned(lCorrect);
-	const long lResult = atol(myunsigned.toString().c_str());
-	if (lResult != lCorrect) {
-		fprintf(stderr, "Store Long %ld = %ld (Unsigned) != %ld (long) fail\n", lCorrect, lResult, lCorrect);
+bool Unsigned::testStoreLong(const long correct) {
+	const Unsigned myunsigned(correct);
+	const long result = atol(myunsigned.toString().c_str());
+	if (result != correct) {
+		fprintf(stderr, "Store Long %ld = %ld (Unsigned) != %ld (long) fail\n", correct, result, correct);
 	}
-	return lResult == lCorrect;
+	return result == correct;
 }
 
 bool Unsigned::testStoreLongLong(const long long lCorrect) {
@@ -1010,9 +1010,9 @@ bool Unsigned::testAll() {
 	const unsigned int A_START = 0;
 	const unsigned int A_END = 10000;
 	const unsigned int A_INC = 77;
-	const unsigned int B_START = 10000;
-	const unsigned int B_END = 0;
-	const unsigned int B_INC = -88;
+	const unsigned int B_START = 45;
+	const unsigned int B_END = 4000;
+	const unsigned int B_INC = 88;
 
 	// Make vectors of test numbers
 	std::vector<unsigned int> a_values, b_values;

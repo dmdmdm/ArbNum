@@ -46,6 +46,10 @@ check: bc
 check_to_file: bc
 	./bc -t > _tests.txt 2>&1
 
+bigcheck_to_file: bc
+	./bc -T > _big_tests.txt 2>&1
+
+
 check_win: bc.exe
 	bc.exe -t
 

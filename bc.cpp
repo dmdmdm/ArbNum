@@ -35,6 +35,19 @@ int main(const int argc, char *argv[]) {
 			const bool result = Scaled::testAll();
 			exit(!result);
 		}
+		else if (strcmp(argv[1], "-T") == 0) {
+			int nSuccess = 0;
+			int nFail = 0;
+			const long startMs = currentMillis();
+			printf("Running 4 test suites\n");
+			if (utilTest()) nSuccess++; else nFail++;
+			if (Unsigned::testAll()) nSuccess++; else nFail++;
+			if (Integer::testAll()) nSuccess++; else nFail++;
+			if (Scaled::testAll()) nSuccess++; else nFail++;
+			printTestResults("multiTest", nSuccess, nFail, startMs);
+			const bool result = nFail == 0;
+			exit(!result);
+		}
 
 		usage();
 	}

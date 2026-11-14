@@ -182,7 +182,7 @@ bool testPow(const long base, const long exp) {
 	return result == correct;
 }
 
-void utilTest() {
+bool utilTest() {
 	int nSuccess = 0;
 	int nFail = 0;
 	const long startMs = currentMillis();
@@ -212,4 +212,5 @@ void utilTest() {
 	}
 
 	printTestResults("utilMath", nSuccess, nFail, startMs);
+	return nFail == 0;
 }
