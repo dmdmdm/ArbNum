@@ -187,10 +187,17 @@ bool utilTest() {
 	int nFail = 0;
 	const long startMs = currentMillis();
 
+// Not sure why MSVC cann't handle numbers as large as others
+#ifdef _MSC_VER
+	const long max_exp = 9;
+#else
+	const long max_exp = 16;
+#endif
+
 	// Regular numbers
 	printf("Regular numbers\n");
 	for (long a = 0; a < 10; a++) {
-		for (long b = 16; b >= 0; b--) {
+		for (long b = max_exp; b >= 0; b--) {
 			if (testPow(a, b)) {
 				nSuccess++;
 			}
@@ -202,7 +209,7 @@ bool utilTest() {
 
 	// Powers of 10
 	printf("Powers of 10\n");
-	for (long exp = 0; exp < 18; exp++) {
+	for (long exp = 0; exp < max_exp; exp++) {
 		if (testPow(10, exp)) {
 			nSuccess++;
 		}

@@ -17,7 +17,6 @@ enum { ARBNUM_BUF_SIZE = 1024 };
 //
 
 #define MKLONG(_a) (long)(_a)
-#define MKSIZET(_a) (size_t)(_a)
 
 //
 // Logging
