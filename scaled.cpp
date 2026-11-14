@@ -40,6 +40,7 @@ static const Scaled s_ScaledFour(4);
 static const Scaled s_ScaledMinusOne(-1);
 static const Scaled s_ScaledPi("3.1415926535897932384626433832795");
 static const Scaled s_ScaledPi2(s_ScaledPi * 2);
+static const Scaled s_ScaledMinusPi2(s_ScaledPi * -2);
 static Scaled s_ScaledPiDiv2; // Initialized below
 static Scaled s_ScaledPiDiv4;
 
@@ -542,7 +543,7 @@ Scaled Scaled::isPrime(const Scaled &a) {
 Scaled Scaled::sin(const Scaled &xIn) {
 	Scaled x(xIn);
 	if (x > s_ScaledPi2) {
-		x = x % s_ScaledPi2;
+		x %= s_ScaledPi2;
 	}
 
 	Scaled out, chunk, sign(1), term;
@@ -550,7 +551,7 @@ Scaled Scaled::sin(const Scaled &xIn) {
 		chunk = 2 * n + 1;
 		term = pow(x, chunk) / factorial(chunk);
 		out += sign * term;
-		if (term < s_ScaledEpsilon) break;
+		if (term.isCloseToZero()) break;
 		sign.flipSign();
 	}
 	return out;
@@ -560,7 +561,7 @@ Scaled Scaled::sin(const Scaled &xIn) {
 Scaled Scaled::cos(const Scaled &xIn) {
 	Scaled x(xIn);
 	if (x > s_ScaledPi2) {
-		x = x % s_ScaledPi2;
+		x %= s_ScaledPi2;
 	}
 
 	Scaled out, chunk, sign(1), term;
@@ -568,7 +569,7 @@ Scaled Scaled::cos(const Scaled &xIn) {
 		chunk = 2 * n;
 		term = pow(x, chunk) / factorial(chunk);
 		out += sign * term;
-		if (term < s_ScaledEpsilon) break;
+		if (term.isCloseToZero()) break;
 		sign.flipSign();
 	}
 	return out;
@@ -580,7 +581,7 @@ Scaled Scaled::tan(const Scaled &xIn) {
 	Scaled x(xIn);
 
     // Range reduction to [-pi/2, pi/2]
-    x = x - s_ScaledPi * Scaled::round(x / s_ScaledPi);
+	x -= s_ScaledPi * Scaled::round(x / s_ScaledPi);
 
     // Handle sign (tan is odd)
     int sign = 1;
@@ -923,6 +924,8 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 	}
 }
 
+#undef TEST_TRIG_ONLY
+
 bool Scaled::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
@@ -933,24 +936,7 @@ bool Scaled::testAll() {
 		testLimit = 120;
 	}
 
-	/*
-	Scaled a = s_ScaledPi / 2;
-	if (eq(s_ScaledPiDiv2.toDouble(), a.toDouble())) {
-		printf("pi/2 is good\n");
-	}
-	else  {
-		printf("pi/2 is bad\n");
-	}
-
-	Scaled b = s_ScaledPi / 4;
-	if (eq(s_ScaledPiDiv4.toDouble(), b.toDouble())) {
-		printf("pi/4 is good\n");
-	}
-	else  {
-		printf("pi/4 is bad.  Div4=%g b=%g\n", s_ScaledPiDiv4.toDouble(), b.toDouble());
-	}
-	*/
-
+#ifndef TEST_TRIG_ONLY
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25", "123456789012345678901234567890" };
 	const char *checkStrExpect[] = { "10000", ".0001", "0", "0",       "4", "4000",     "0", "-25", "123456789012345678901234567890" };
@@ -980,6 +966,7 @@ bool Scaled::testAll() {
 
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
 	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
+
 	for (int i = 0; i < nCheckLong; i++) {
 		printf("Testing store long %ld\n", checkLong[i]);
 		if (testStoreLong(checkLong[i])) {
@@ -1161,9 +1148,10 @@ bool Scaled::testAll() {
 			nFail++;
 		}
 	}
+#endif
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = 1; a < 12; a += .4) {
+	for (double a = -7; a < 7; a += .4) {
 		printf("Testing sin with %g\n", a);
 		if (testSin(a)) {
 			nSuccess++;
@@ -1174,7 +1162,7 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = 1; a < 12; a += .4) {
+	for (double a = -7; a < 7; a += .4) {
 		printf("Testing cos with %g\n", a);
 		if (testCos(a)) {
 			nSuccess++;
@@ -1185,7 +1173,7 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = 1; a < 12; a += .4) {
+	for (double a = -7; a < 7; a += .4) {
 		printf("Testing tan with %g\n", a);
 		if (testTan(a)) {
 			nSuccess++;
