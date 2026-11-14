@@ -237,7 +237,7 @@ std::string Scaled::toString() const {
 			str = '0' + str;
 		}
 
-		str.insert(MKSIZET(str.length() - digits), 1, '.');
+		str.insert(str.length() - (size_t)digits, 1, '.');
 
 		if (mUnscaled.isNegative()) {
 			str = '-' + str;

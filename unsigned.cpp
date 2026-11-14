@@ -882,7 +882,8 @@ bool Unsigned::testSqrt(const unsigned int a) {
 }
 
 // By Soma Mbadiwe on https://stackoverflow.com/questions/15743192/check-if-number-is-prime-number
-unsigned int Unsigned::isPrimeNativeUnsigned(const unsigned int a) {
+unsigned int Unsigned::isPrimeNativeUnsigned(const unsigned int aIn) {
+	int a = aIn; // Easier to deal with regular int
 	if (a <= 1) return false;
 	if (a == 2 || a == 3 || a == 5) return true;
 	if (a % 2 == 0 || a % 3 == 0 || a % 5 == 0) return false;
