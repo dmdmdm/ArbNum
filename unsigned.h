@@ -94,7 +94,7 @@ public:
 	Unsigned(const long long);
 	Unsigned(const bool);
 
-	int &operator[](const int i) { return mDigits[i]; }
+	int &operator[](const int i) { return mDigits[(size_t)i]; }
 	Unsigned operator+=(const Unsigned &other) { add(other); return *this; }
 	Unsigned operator-=(const Unsigned &other) { subtract(other); return *this; }
 	Unsigned operator*=(const Unsigned &other) { multiply(other); return *this; }
