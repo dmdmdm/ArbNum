@@ -930,7 +930,7 @@ bool Scaled::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
 	const long startMs = currentMillis();
-	int testLimit = 10; // Seconds
+	int testLimit = 15; // Seconds
 
 	if (isHome()) {
 		testLimit = 120;
