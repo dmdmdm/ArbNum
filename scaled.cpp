@@ -995,9 +995,14 @@ bool Scaled::testAll() {
 	long B_INC = -88;
 
 	// Go faster
-	A_INC *= 9;
-	B_INC *= 9;
-
+	if (isHome()) {
+		A_INC *= 9;
+		B_INC *= 9;
+	} else {
+		A_INC *= 18;
+		B_INC *= 18;
+	}
+	
 	// Make vectors of test numbers
 	std::vector<double> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
