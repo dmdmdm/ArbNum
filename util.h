@@ -7,10 +7,20 @@
 #include <string>
 
 //
-// const
+// Constants
 //
 
 enum { ARBNUM_BUF_SIZE = 1024 };
+
+#ifndef MAX_PATH
+#define MAX_PATH (256)
+#endif
+
+#if __cplusplus >= 201703L
+#define INLINE inline
+#else
+#define INLINE static
+#endif
 
 //
 // Covert

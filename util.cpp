@@ -65,7 +65,7 @@ void getHostName(char *host, const size_t size) {
 }
 
 bool isHome() {
-	char host[256] = "";
+	char host[MAX_PATH] = "";
 	getHostName(host, sizeof(host));
 	return strcmp(host, "bolt") == 0 || strcmp(host, "DJM") == 0;
 }
@@ -157,7 +157,7 @@ void printTestResults(const char *testName, const int nSuccess, const int nFail,
 
 long powLong(const long base, const long exp) {
 	if (exp < 0) {
-		ArbNum_log("powLog: negative exponents are not supported\n");
+		ArbNum_log("powLong: negative exponents are not supported\n");
 		return -1;
 	}
 
@@ -187,17 +187,16 @@ bool utilTest() {
 	int nFail = 0;
 	const long startMs = currentMillis();
 
-// Not sure why MSVC cann't handle numbers as large as others
-#ifdef _MSC_VER
-	const long max_exp = 9;
-#else
-	const long max_exp = 16;
-#endif
+	long maxExp = 16;
+	if (sizeof(long) < 8) {
+		// long is only 4 bytes in MSVC
+		maxExp = 9;
+	}
 
 	// Regular numbers
 	printf("Regular numbers\n");
 	for (long a = 0; a < 10; a++) {
-		for (long b = max_exp; b >= 0; b--) {
+		for (long b = maxExp; b >= 0; b--) {
 			if (testPow(a, b)) {
 				nSuccess++;
 			}
@@ -209,7 +208,7 @@ bool utilTest() {
 
 	// Powers of 10
 	printf("Powers of 10\n");
-	for (long exp = 0; exp < max_exp; exp++) {
+	for (long exp = 0; exp < maxExp; exp++) {
 		if (testPow(10, exp)) {
 			nSuccess++;
 		}

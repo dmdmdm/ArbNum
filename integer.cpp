@@ -14,13 +14,13 @@
 #include "util.h"
 #include "integer.h"
 
-static const Integer s_IntegerZero(0);
-static const Integer s_IntegerOne(1);
-static const Integer s_IntegerTwo(2);
-static const Integer s_IntegerIntMin(INT_MIN);
-static const Integer s_IntegerIntMax(INT_MAX);
-static const Integer s_IntegerLongMin(LONG_MIN);
-static const Integer s_IntegerLongMax(LONG_MAX);
+INLINE const Integer s_IntegerZero(0);
+INLINE const Integer s_IntegerOne(1);
+INLINE const Integer s_IntegerTwo(2);
+INLINE const Integer s_IntegerIntMin(INT_MIN);
+INLINE const Integer s_IntegerIntMax(INT_MAX);
+INLINE const Integer s_IntegerLongMin(LONG_MIN);
+INLINE const Integer s_IntegerLongMax(LONG_MAX);
 
 void Integer::set(const Integer &in) {
 	mSpecial = in.mSpecial;

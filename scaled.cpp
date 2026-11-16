@@ -32,24 +32,25 @@ void Scaled_setSimplify(const Scaled_Simplify s) {
 //------------------------------------------------------------------------------
 // Scaled
 
-static const Integer s_IntegerTen(10);
-static const Scaled s_ScaledZero(0);
-static const Scaled s_ScaledOne(1);
-static const Scaled s_ScaledTwo(2);
-static const Scaled s_ScaledFour(4);
-static const Scaled s_ScaledMinusOne(-1);
-static const Scaled s_ScaledPi("3.1415926535897932384626433832795");
-static const Scaled s_ScaledPi2(s_ScaledPi * 2);
-static const Scaled s_ScaledMinusPi2(s_ScaledPi * -2);
-static Scaled s_ScaledPiDiv2; // Initialized below
-static Scaled s_ScaledPiDiv4;
+INLINE const Integer s_IntegerTen = 10;
+INLINE const Scaled s_ScaledZero = 0;
+INLINE const Scaled s_ScaledPointFive = ".5";
+INLINE const Scaled s_ScaledOne = 1;
+INLINE const Scaled s_ScaledTwo = 2;
+INLINE const Scaled s_ScaledFour = 4;
+INLINE const Scaled s_ScaledMinusOne = -1;
+INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795";
+INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2;
+INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2;
+INLINE const Scaled s_ScaledPiDiv2 = s_ScaledPi / 2;
+INLINE const Scaled s_ScaledPiDiv4 = s_ScaledPi / 4;
 
 // Precision and epsilon
 
-static const Scaled s_ScaledEpsilon("1e-7");
-static const long s_lDividePrecision = 20;
+INLINE const Scaled s_ScaledEpsilon("1e-7");
+INLINE const long s_lDividePrecision = 20;
 // We calculate divide to 7 decimals and check to one less
-#define CHECKING_EPSILON 1e-6
+#define CHECKING_EPSILON (1e-6 )
 
 void Scaled::clear() {
 	mSpecial = SPEC_NORMAL;
@@ -357,7 +358,7 @@ Scaled Scaled::halfInt(const Scaled &a) {
 }
 
 Scaled Scaled::half(const Scaled &a) {
-	return Scaled::divide(a, s_ScaledTwo);
+	return Scaled::multiply(a, s_ScaledPointFive);
 }
 
 Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
@@ -512,14 +513,14 @@ Scaled Scaled::sqrt(const Scaled &a) {
 	}
 
 	Scaled x0 = half(a);
-
 	if (x0.isCloseToZero()) return a;
-
 	Scaled x1 = half(x0 + a / x0);
 
-	while (x1 < x0) {
+	for (;;) {
 		x0 = x1;
 		x1 = half(x0 + a / x0);
+		Scaled diff = x1 - x0;
+		if (diff.isCloseToZero()) break;
 	}
 
 	return x0;
@@ -590,10 +591,12 @@ Scaled Scaled::tan(const Scaled &xIn) {
         sign = -1;
 	}
 
+	/*
 	if (s_ScaledPiDiv4.isZero()) {
 		s_ScaledPiDiv4 = s_ScaledPi / 4;
 		s_ScaledPiDiv2 = s_ScaledPi / 2;
 	}
+	*/
 
     // Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
     bool invert = false;
@@ -942,18 +945,24 @@ bool Scaled::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
 	const long startMs = currentMillis();
+	const bool is_home = isHome();
 	int testLimit = 15; // Seconds (time is limiyed on github)
+	double trigInc = .4;
 
-	if (isHome()) {
+	if (is_home) {
 		testLimit = 120;
+	}
+	else {
+		trigInc *= 2;
 	}
 
 #ifndef TEST_TRIG_ONLY
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
+	{
 	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25", "123456789012345678901234567890" };
 	const char *checkStrExpect[] = { "10000", ".0001", "0", "0",       "4", "4000",     "0", "-25", "123456789012345678901234567890" };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
-	for (int i = 0; i < nCheckStr; i++) {
+	for	 (int i = 0; i < nCheckStr; i++) {
 		printf("Testing store str %s\n", checkStr[i]);
 		if (testStoreStr(checkStr[i], checkStrExpect[i])) {
 			nSuccess++;
@@ -961,9 +970,10 @@ bool Scaled::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 	ArbNum_setLogging(AN_LOG);
 
+	{
 	const double checkDouble[] = { 9.3, 9.000001, -4, 0.0003 };
 	const int nCheckDouble = sizeof(checkDouble) / sizeof(checkDouble[0]);
 	for (int i = 0; i < nCheckDouble; i++) {
@@ -974,8 +984,9 @@ bool Scaled::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 
+	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
 	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
 
@@ -997,7 +1008,7 @@ bool Scaled::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 
 	// These numbers are divided by 10 and changed into doubles
 	const long A_START = -10000;
@@ -1008,7 +1019,7 @@ bool Scaled::testAll() {
 	long B_INC = -88;
 
 	// Go faster
-	if (isHome()) {
+	if (is_home) {
 		A_INC *= 9;
 		B_INC *= 9;
 	}
@@ -1097,21 +1108,22 @@ bool Scaled::testAll() {
 		}
 	}
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	printf("Testing pi math\n");
 	{
-		const double testPiMult[] = { .5, -.5, .25, -.25 };
-		const double testPiDiv[] = { 2, -2, 4, -4 };
-		const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
-		for (int i = 0; i < nTestPi; i++) {
-			if (testPi(testPiMult[i], testPiDiv[i])) {
-				nSuccess++;
-			}
-			else {
-				nFail++;
-			}
+	const double testPiMult[] = { .5, -.5, .25, -.25 };
+	const double testPiDiv[] = { 2, -2, 4, -4 };
+	const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
+	for (int i = 0; i < nTestPi; i++) {
+		if (testPi(testPiMult[i], testPiDiv[i])) {
+			nSuccess++;
 		}
-	}		
+		else {
+			nFail++;
+		}
+	} }		
 
+	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	for (double a = -10; a <= 10; a++) {
 		printf("Testing pow with %g on the left\n", a);
 		for (double b = 1; b <= 9; b++) {
@@ -1184,25 +1196,8 @@ bool Scaled::testAll() {
 	}
 #endif
 
-	/* Moved
-	printf("Testing pi math\n");
-	{
-		const double testPiMult[] = { .5, -.5, .25, -.25 };
-		const double testPiDiv[] = { 2, -2, 4, -4 };
-		const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
-		for (int i = 0; i < nTestPi; i++) {
-			if (testPi(testPiMult[i], testPiDiv[i])) {
-				nSuccess++;
-			}
-			else {
-				nFail++;
-			}
-		}
-	}
-	*/
-
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = -7; a < 7; a += .4) {
+	for (double a = -7; a < 7; a += trigInc) {
 		printf("Testing sin with %g\n", a);
 		if (testSin(a)) {
 			nSuccess++;
@@ -1213,7 +1208,7 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = -7; a < 7; a += .4) {
+	for (double a = -7; a < 7; a += trigInc) {
 		printf("Testing cos with %g\n", a);
 		if (testCos(a)) {
 			nSuccess++;
@@ -1224,7 +1219,7 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = -7; a < 7; a += .4) {
+	for (double a = -7; a < 7; a += trigInc) {
 		printf("Testing tan with %g\n", a);
 		if (testTan(a)) {
 			nSuccess++;

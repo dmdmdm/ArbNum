@@ -18,13 +18,13 @@
 //------------------------------------------------------------------------------
 // Unsigned
 
-static const Unsigned s_UnsignedZero(0);
-static const Unsigned s_UnsignedOne(1);
-static const Unsigned s_UnsignedTwo(2);
-static const Unsigned s_UnsignedThree(3);
-static const Unsigned s_UnsignedFive(5);
-static const Unsigned s_UnsignedSix(6);
-static const int UNASSIGNED = -1;
+INLINE const Unsigned s_UnsignedZero(0);
+INLINE const Unsigned s_UnsignedOne(1);
+INLINE const Unsigned s_UnsignedTwo(2);
+INLINE const Unsigned s_UnsignedThree(3);
+INLINE const Unsigned s_UnsignedFive(5);
+INLINE const Unsigned s_UnsignedSix(6);
+INLINE const int UNASSIGNED = -1;
 
 void Unsigned::pad(const long wantedLength) {
 	mDigits.reserve((size_t)wantedLength);
@@ -380,8 +380,8 @@ Unsigned Unsigned::subtract(const Unsigned &a, const Unsigned &b) {
 }
 
 Unsigned Unsigned::multiply(const Unsigned &a, const Unsigned &b) {
-	Unsigned	sum(0);
-	Unsigned	partProduct;
+	Unsigned sum(0);
+	Unsigned partProduct;
 
 	partProduct.pad(a.length() + b.length());
 	for (long i = 0; i < b.length(); i++) {
