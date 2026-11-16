@@ -120,6 +120,7 @@ public:
 	static bool testMultiply(const double, const double);
 	static bool testDivide(const double, const double);
 	static bool testMod(const double, const double);
+	static bool testPi(const double mult, const double div);
 	static bool testPow(const double, const double);
 	static double gcdDouble(const double, const double);
 	static bool testGcd(const double, const double);

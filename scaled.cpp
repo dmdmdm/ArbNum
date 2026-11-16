@@ -768,6 +768,17 @@ bool Scaled::testMod(const double a, const double b) {
 	return eq(dResult, dCorrect);
 }
 
+bool Scaled::testPi(const double mult, const double div) {
+	const Scaled a = s_ScaledPi * mult;
+	const Scaled b = s_ScaledPi / div;
+	const double aDouble = a.toDouble();
+	const double bDouble = b.toDouble();
+	if (ne(aDouble, bDouble)) {
+		fprintf(stderr, "pi * %g = %g != pi / %g = %g fail\n", mult, aDouble, div, bDouble);
+	}
+	return eq(aDouble, bDouble);
+}
+
 bool Scaled::testPow(const double a, const double b) {
 	const double dResult = Scaled::pow(a, b).toDouble();
 	const double dCorrect = std::pow(a, b);
@@ -924,13 +935,14 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 	}
 }
 
+
 #undef TEST_TRIG_ONLY
 
 bool Scaled::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
 	const long startMs = currentMillis();
-	int testLimit = 15; // Seconds
+	int testLimit = 15; // Seconds (time is limiyed on github)
 
 	if (isHome()) {
 		testLimit = 120;
@@ -987,6 +999,7 @@ bool Scaled::testAll() {
 		}
 	}
 
+	// These numbers are divided by 10 and changed into doubles
 	const long A_START = -10000;
 	const long A_END = 10000;
 	long A_INC = 77;
@@ -998,11 +1011,12 @@ bool Scaled::testAll() {
 	if (isHome()) {
 		A_INC *= 9;
 		B_INC *= 9;
-	} else {
+	}
+	else {
 		A_INC *= 18;
 		B_INC *= 18;
 	}
-	
+
 	// Make vectors of test numbers
 	std::vector<double> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
@@ -1083,6 +1097,21 @@ bool Scaled::testAll() {
 		}
 	}
 
+	printf("Testing pi math\n");
+	{
+		const double testPiMult[] = { .5, -.5, .25, -.25 };
+		const double testPiDiv[] = { 2, -2, 4, -4 };
+		const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
+		for (int i = 0; i < nTestPi; i++) {
+			if (testPi(testPiMult[i], testPiDiv[i])) {
+				nSuccess++;
+			}
+			else {
+				nFail++;
+			}
+		}
+	}		
+
 	for (double a = -10; a <= 10; a++) {
 		printf("Testing pow with %g on the left\n", a);
 		for (double b = 1; b <= 9; b++) {
@@ -1155,6 +1184,23 @@ bool Scaled::testAll() {
 	}
 #endif
 
+	/* Moved
+	printf("Testing pi math\n");
+	{
+		const double testPiMult[] = { .5, -.5, .25, -.25 };
+		const double testPiDiv[] = { 2, -2, 4, -4 };
+		const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
+		for (int i = 0; i < nTestPi; i++) {
+			if (testPi(testPiMult[i], testPiDiv[i])) {
+				nSuccess++;
+			}
+			else {
+				nFail++;
+			}
+		}
+	}
+	*/
+
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
 	for (double a = -7; a < 7; a += .4) {
 		printf("Testing sin with %g\n", a);
@@ -1187,7 +1233,7 @@ bool Scaled::testAll() {
 			nFail++;
 		}
 	}
-	
+
 the_end:
 	printTestResults("scaledTest", nSuccess, nFail, startMs);
 	return nFail == 0;
