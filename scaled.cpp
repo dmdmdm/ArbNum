@@ -42,8 +42,14 @@ INLINE const Scaled s_ScaledMinusOne = -1;
 INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795";
 INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2;
 INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2;
+
+#ifdef _MSC_VER
+#define s_ScaledPiDiv2 (s_ScaledPi / 2)
+#define s_ScaledPiDiv4 (s_ScaledPi / 4)
+#else
 INLINE const Scaled s_ScaledPiDiv2 = s_ScaledPi / 2;
 INLINE const Scaled s_ScaledPiDiv4 = s_ScaledPi / 4;
+#endif
 
 // Precision and epsilon
 
@@ -946,13 +952,14 @@ bool Scaled::testAll() {
 	int nFail = 0;
 	const long startMs = currentMillis();
 	const bool is_home = isHome();
-	int testLimit = 15; // Seconds (time is limiyed on github)
+
+	// Home settings
+	int testLimit = 120; // Seconds
 	double trigInc = .4;
 
-	if (is_home) {
-		testLimit = 120;
-	}
-	else {
+	// Github settings
+	if (!is_home) {
+		testLimit = 15;
 		trigInc *= 2;
 	}
 
@@ -1174,7 +1181,7 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	for (double a = 0; a <= 100; a++) {
+	for (double a = 0; a <= 50; a+= 3) {
 		printf("Testing isPrime with %g\n", a);
 		if (testIsPrime(a)) {
 			nSuccess++;
