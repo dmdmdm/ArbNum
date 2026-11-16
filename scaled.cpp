@@ -47,7 +47,7 @@ static Scaled s_ScaledPiDiv4;
 // Precision and epsilon
 
 static const Scaled s_ScaledEpsilon("1e-7");
-static int s_iDividePrecision = 20;
+static const long s_lDividePrecision = 20;
 // We calculate divide to 7 decimals and check to one less
 #define CHECKING_EPSILON 1e-6
 
@@ -392,7 +392,7 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 	Unsigned remainder = div0.remainder;
     
     // Compute decimal places up to the requested precision
-	for (int i = 1; i <= s_iDividePrecision; i++) {
+	for (long i = 1; i <= s_lDividePrecision; i++) {
 		remainder.multiplyByTen();
 		const UnsignedDivide div1 = Unsigned::divideWithRem(remainder, b);
 		outString += div1.quotient.firstDigitAsChar();
