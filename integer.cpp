@@ -297,6 +297,7 @@ Integer Integer::lcm(const Integer &a, const Integer &b) {
 
 Integer Integer::sqrt(const Integer &a) {
 	if (a.isNegative()) {
+		ArbNum_log("integer: sqrt of negative number\n");
 		Integer out;
 		out.mkError();
 		return out;
