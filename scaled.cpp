@@ -141,9 +141,9 @@ void Scaled::setSign(const Scaled &a) {
 	mUnscaled.setSign(a.mUnscaled);
 }
 
-Scaled::Scaled(const Integer &unscaled, const Integer &exp) {
+Scaled::Scaled(const int &unscaled, const int &exp) {
 	mUnscaled = unscaled;
-	mExp = exp.toInt();
+	mExp = exp;
 
 	simplify();
 }
@@ -241,10 +241,10 @@ std::string Scaled::toString() const {
 		if (digits < 0) return "negative-exp";
 		std::string str = mUnscaled.toStringNoSign();
 
-		while ((long)str.length() < digits) {
-			str = '0' + str;
-		}
+		// Ensure enough leading zeros
+		str.insert(str.begin(), (size_t)digits - str.length(), '0');
 
+		// Insert decimal point
 		str.insert(str.length() - (size_t)digits, 1, '.');
 
 		if (mUnscaled.isNegative()) {
@@ -261,18 +261,10 @@ double Scaled::toDouble() const {
 }
 
 Integer Scaled::toInteger() const {
-	if (mExp >= mUnscaled.length()) return 0;
+	if (mExp >= mUnscaled.length()) return 0; // Smaller than zero
 	Integer out(mUnscaled);
 	out.shiftRight(mExp);
 	return out;
-}
-
-Unsigned Scaled::toUnsigned() const {
-	return toInteger().toUnsigned();
-}
-
-int Scaled::toInt() const {
-	return toInteger().toInt();
 }
 
 std::string Scaled::toDump() const {
@@ -407,12 +399,12 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 		if (remainder == 0) break;
 	}
 
-    // Apply the correct sign
+	out.saveNumber(outString.c_str());
+
 	if (isNegative) {
-		outString = "-" + outString;
+		out.mkNegative();
 	}
 
-	out.saveNumber(outString.c_str());
 	return out;
 }
 
@@ -582,7 +574,7 @@ Scaled Scaled::cos(const Scaled &xIn) {
 	return out;
 }
 
-// In radians, Tayor series
+// In radians.
 // Slower than other trig functions because does sin() and cos()
 Scaled Scaled::tan(const Scaled &xIn) {
 	Scaled x(xIn);
@@ -596,13 +588,6 @@ Scaled Scaled::tan(const Scaled &xIn) {
         x.flipSign(); // x = -x
         sign = -1;
 	}
-
-	/*
-	if (s_ScaledPiDiv4.isZero()) {
-		s_ScaledPiDiv4 = s_ScaledPi / 4;
-		s_ScaledPiDiv2 = s_ScaledPi / 2;
-	}
-	*/
 
     // Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
     bool invert = false;
@@ -700,7 +685,7 @@ bool Scaled::testStoreDouble(const double dCorrect) {
 
 bool Scaled::testStoreLong(const long lCorrect) {
 	const Scaled scaled(lCorrect);
-	const long lResult = atol(scaled.toString().c_str());
+	const long lResult = scaled.toLong();
 	if (lResult != lCorrect) {
 		fprintf(stderr, "Store Long %ld = %ld (Scaled) != %ld (long) fail\n", lCorrect, lResult, lCorrect);
 	}
@@ -709,7 +694,7 @@ bool Scaled::testStoreLong(const long lCorrect) {
 
 bool Scaled::testStoreLongLong(const long long lCorrect) {
 	const Scaled scaled(lCorrect);
-	const long long lResult = atoll(scaled.toString().c_str());
+	const long long lResult = scaled.toLongLong();
 	if (lResult != lCorrect) {
 		fprintf(stderr, "Store LongLong %lld = %lld (Scaled) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
 	}
@@ -727,7 +712,6 @@ bool Scaled::testCompare(const double a, const double b) {
 	const double dCorrect = compareDouble(a, b);
 	if (ne(dResult, dCorrect)) {
 		fprintf(stderr, "%g <> %g = %g (Scaled) != %g (long) fail\n", a, b, dResult, dCorrect);
-		exit(0);
 	}
 	return eq(dResult, dCorrect);
 }

@@ -1,4 +1,4 @@
-// A simple arbitrary precision library and interactive text program
+// An arbitrary precision library and interactive text program
 // Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
@@ -351,16 +351,14 @@ std::string Integer::toString(const SIGN_t eSign) const {
 		return "error";
 	}
 
-	std::string out;
+	std::string strSign;
 	if (eSign == WITH_SIGN) {
 		if (mSign < 0) {
-			out += "-";
+			strSign = "-";
 		}
 	}
 
-	out += mUnsigned.toString();
-
-	return out;
+	return strSign + mUnsigned.toString();
 }
 
 char Integer::firstDigitAsChar() const {
@@ -384,7 +382,7 @@ int Integer::toInt() const {
 		return -1;
 	}
 
-	return atoi(toString().c_str());
+	return mSign * mUnsigned.toInt();
 }
 
 long Integer::toLong() const {
@@ -400,20 +398,17 @@ long Integer::toLong() const {
 		return -1;
 	}
 
+	// This seems inefficient but check edge cases before changing to mSign * mUnsigned.toLong() or something
 	return atol(toString().c_str());
 }
 
 long long Integer::toLongLong() const {
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-#pragma message("Sorry " __FUNCTION__ " isn't supported on this compiler")
+	// This seems inefficient but check edge cases before changing to mSign * mUnsigned.toLongLong() or something
 	return atol(toString().c_str());
-#else
-	return atoll(toString().c_str());
-#endif
 }
 
 double Integer::toDouble() const {
-	return atof(toString().c_str());
+	return (double)atof(toString().c_str());
 }
 
 Integer Integer::operator++(int) {
@@ -476,7 +471,6 @@ bool Integer::testCompare(const long a, const long b) {
 	const int lCorrect = compareLong(a, b);
 	if (lResult != lCorrect) {
 		fprintf(stderr, "%ld <> %ld = %d (Integer) != %d (long) fail\n", a, b, lResult, lCorrect);
-		exit(0);
 	}
 	return lResult == lCorrect;
 }
@@ -652,6 +646,7 @@ bool Integer::testAll() {
 	const long startMs = currentMillis();
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
+	{
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello", "-25" };
 	const int checkStrExpect[] = { 0, 0, 4, 4000, 0, -25 };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
@@ -663,9 +658,10 @@ bool Integer::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 	ArbNum_setLogging(AN_LOG);
 
+	{
 	const int checkInt[] = { INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX };
 	const int nCheckInt = sizeof(checkInt) / sizeof(checkInt[0]);
 	for (int i = 0; i < nCheckInt; i++) {
@@ -676,8 +672,9 @@ bool Integer::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 
+	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
 	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
 	for (int i = 0; i < nCheckLong; i++) {
@@ -698,7 +695,7 @@ bool Integer::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 
 	const long A_START = -10000;
 	const long A_END = 10000;

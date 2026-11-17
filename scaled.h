@@ -23,11 +23,12 @@ public:
 	void saveNumber(const char *);
 	void setSign(const Scaled &);
 	void mkNegative() { mUnscaled.mkNegative(); }
+	int signInt() const { return mUnscaled.signInt(); }
 	void flipSign() { mUnscaled.flipSign(); }
 
 	// Constructors
 	Scaled() {};
-	Scaled(const Integer &unscaled, const Integer &exp);
+	Scaled(const int &unscaled, const int &exp);
 	Scaled(const Integer &);
 	Scaled(const char *a) { saveNumber(a); }
 	Scaled(const double);
@@ -60,8 +61,10 @@ public:
 	std::string toString() const;
 	double toDouble() const; // Loses precision
 	Integer toInteger() const; // Loses decimal part
-	Unsigned toUnsigned() const; // Loses sign and decimal part 
-	int toInt() const; // Loses precision and decimal part
+	inline Unsigned toUnsigned() const { return toInteger().toUnsigned(); } // Loses sign and decimal part 
+	inline int toInt() const { return toInteger().toInt(); }  // Loses precision and decimal part
+	inline long toLong() const { return toInteger().toLong(); }  // Loses precision and decimal part
+	inline long long toLongLong() const { return toInteger().toLongLong(); } // Loses precision and decimal part
 	std::string toDump() const;
 
 	static void convertToSameExponent(Scaled &, Scaled &);

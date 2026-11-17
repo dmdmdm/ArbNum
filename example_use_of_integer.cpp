@@ -1,4 +1,4 @@
-// A simple arbitrary precision library and interactive text program
+// An arbitrary precision library and interactive text program
 // Copyright © 2026, Dave McKellar
 // Mozilla Public Licensed
 
@@ -13,5 +13,5 @@ int main() {
 	const Integer a("90000000000");
 	const Integer b("80000000000");
 	const Integer c = a * b;
-	printf("result=%s\n", c.toString().c_str());
+	printf("%s + %s = %s\n", a.toString().c_str(), b.toString().c_str(), c.toString().c_str());
 }

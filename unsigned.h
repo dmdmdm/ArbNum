@@ -1,4 +1,4 @@
-// A simple arbitrary precision library and interactive text program
+// An arbitrary precision library and interactive text program
 // Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
@@ -47,7 +47,8 @@ public:
 	char firstDigitAsChar() const;
 	int firstDigitAsInt() const;
 	int lastDigitAsInt() const;
-	unsigned int toUnsignedInt() const; // Loses precision (will be always be positive)
+	unsigned int toUnsignedInt() const; // Loses precision
+	int toInt() const; // Loses precision (will be always be positive)
 	long toLong() const; // Loses precision
 	long long toLongLong() const; // Loses precision
 	void set(const Unsigned &);

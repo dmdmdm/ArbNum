@@ -1,4 +1,4 @@
-// A simple arbitrary precision library and interactive text program
+// An arbitrary precision library and interactive text program
 // Copyright © 2026, Dave McKellar
 // Mozilla Public Licensed
 
@@ -9,16 +9,11 @@
 #include <cmath>
 #include <format>
 #include "scaled.h"
+#include "util.h"
 
 int main() {
-	const Scaled pi("pi");
-	const Scaled pi2 = pi + 1;
-	printf("pi = %s\n", pi.toString().c_str());
-	printf("pi + 1 = %s\n", pi2.toString().c_str());
-
-	const Scaled a("1.1234");
-	const Scaled b(".3");
-
+	const Scaled a = "60000000000000000000";
+	const Scaled b = "70000000000000000000";
 	const Scaled sum = a + b;
 	printf("%s + %s = %s\n", a.toString().c_str(), b.toString().c_str(), sum.toString().c_str());
 

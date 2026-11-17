@@ -1,4 +1,4 @@
-// A simple arbitrary precision library and interactive text program
+// An arbitrary precision library and interactive text program
 // Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
@@ -27,13 +27,7 @@ INLINE const Unsigned s_UnsignedSix(6);
 INLINE const int UNASSIGNED = -1;
 
 void Unsigned::pad(const long wantedLength) {
-	/*
-	mDigits.reserve((size_t)wantedLength);
-	while ((long)mDigits.size() < wantedLength) {
-		prepend(0);
-	}
-	*/
-	mDigits.insert(mDigits.begin(), wantedLength - (long)mDigits.size(), 0);
+	mDigits.insert(mDigits.begin(), (size_t)wantedLength - mDigits.size(), 0);
 }
 
 void Unsigned::append(const int digit, const long numberOfDigits) {
@@ -185,6 +179,10 @@ void Unsigned::saveNumber(const char *s) {
 	trimLeading();
 }
 
+inline char intToCharFast(const int n) {
+	return (char)(n + '0');
+}
+
 std::string Unsigned::toString() const {
 	if (mDigits.size() == 0) {
 		return "0";
@@ -192,7 +190,7 @@ std::string Unsigned::toString() const {
 
 	std::string out;
 	for (digits_t::const_iterator it = mDigits.begin(); it != mDigits.end(); it++) {
-		out += intToChar(*it);
+		out += intToCharFast(*it);
 	}
 
 	return out;
@@ -215,6 +213,19 @@ int Unsigned::lastDigitAsInt() const {
 
 unsigned int Unsigned::toUnsignedInt() const {
 	return (unsigned int)atoi(toString().c_str());
+
+	/*
+	// Oddly, this is slower
+	unsigned int out = 0;
+	for (digits_t::const_iterator it = mDigits.begin(); it != mDigits.end(); it++) {
+		out = out * 10 + *it;
+	}
+	return out;
+	*/
+}
+
+int Unsigned::toInt() const {
+	return atoi(toString().c_str());
 }
 
 long Unsigned::toLong() const {
@@ -222,12 +233,7 @@ long Unsigned::toLong() const {
 }
 
 long long Unsigned::toLongLong() const {
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-#pragma message("Sorry " __FUNCTION__ " isn't supported on this compiler")
-	return atol(toString().c_str());
-#else
 	return atoll(toString().c_str());
-#endif
 }
 
 void Unsigned::set(const Unsigned &in) {
@@ -960,6 +966,7 @@ bool Unsigned::testAll() {
 	const long startMs = currentMillis();
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
+	{
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello" };
 	const unsigned int checkStrExpect[] = { 0, 0, 4, 4000, 0 };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
@@ -971,9 +978,10 @@ bool Unsigned::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 	ArbNum_setLogging(AN_LOG);
 
+	{
 	const unsigned int checkUnsignedInt[] = { 9, 4, 3 };
 	const int nCheckUnsignedInt = sizeof(checkUnsignedInt) / sizeof(checkUnsignedInt[0]);
 	for (int i = 0; i < nCheckUnsignedInt; i++) {
@@ -984,8 +992,9 @@ bool Unsigned::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 
+	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
 	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
 	for (int i = 0; i < nCheckLong; i++) {
@@ -1008,7 +1017,7 @@ bool Unsigned::testAll() {
 		else {
 			nFail++;
 		}
-	}
+	} }
 
 	const unsigned int A_START = 0;
 	const unsigned int A_END = 10000;

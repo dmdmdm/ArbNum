@@ -1,4 +1,4 @@
-// A simple arbitrary precision library and interactive text program
+// An arbitrary precision library and interactive text program
 // Copyright © 2020, Dave McKellar
 // Mozilla Public Licensed
 
@@ -23,6 +23,7 @@ public:
 	void mkNegative() { mSign = -1; }
 	void mkPositive() { mSign = 1; }
 	void flipSign() { mSign *= -1; }
+	int signInt() const { return mSign; }
 	void setSign(const Integer &other) { mSign = other.mSign; }
 	void shiftLeft(const long numberOfDigits) { mUnsigned.shiftLeft(numberOfDigits); }
 	void shiftRight(const long numberOfDigits) { mUnsigned.shiftRight(numberOfDigits); }
