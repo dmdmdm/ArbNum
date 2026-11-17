@@ -183,12 +183,11 @@ void Unsigned::saveNumber(const char *s) {
 }
 
 std::string Unsigned::toString() const {
-	std::string out = "";
-
 	if (mDigits.size() == 0) {
 		return "0";
 	}
 
+	std::string out;
 	for (digits_t::const_iterator it = mDigits.begin(); it != mDigits.end(); it++) {
 		out += intToChar(*it);
 	}
