@@ -344,8 +344,6 @@ void Integer::pow(const Integer &other) {
 }
 
 std::string Integer::toString(const SIGN_t eSign) const {
-	std::string out = "";
-
 	if (isIgnore()) {
 		return "ignore";
 	}
@@ -353,6 +351,7 @@ std::string Integer::toString(const SIGN_t eSign) const {
 		return "error";
 	}
 
+	std::string out;
 	if (eSign == WITH_SIGN) {
 		if (mSign < 0) {
 			out += "-";
