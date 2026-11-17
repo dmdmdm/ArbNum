@@ -1,5 +1,5 @@
 # ArbNum
-A simple arbitrary precision library and interactive terminal program.
+An arbitrary precision library and interactive terminal program.
 
 I tried to do arbitrary percision real number (numbers with decimal points) math as clearly as possible.  No crazy optimizations but somewhat performant.  The code is intended to be readable.
 
@@ -20,7 +20,7 @@ I tried to do arbitrary percision real number (numbers with decimal points) math
 - **bc.cpp** is the main.
 
 # More details
-There is a testAll() function which tests nearly everything in about 20 seconds.
+Scaled.testAll() tests nearly everything in about 20 seconds.
 
 There is a class called Unsigned which performs arbitrary precision unsigned integer operations.
 
@@ -33,5 +33,4 @@ You can construct with string, int, long, double and it has methods toString(), 
 See file example_use_of_scaled.cpp
 
 Compiles on Fedora, Ubuntu, macOS, Windows.
-Requires package readline-devel on Fedora.
-Requires package libreadline-dev on Ubuntu.
+Requires package readline-devel on Fedora or libreadline-dev on Ubuntu.
