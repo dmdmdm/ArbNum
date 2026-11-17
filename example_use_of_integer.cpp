@@ -10,8 +10,8 @@
 #include "integer.h"
 
 int main() {
-	Integer a("90000000000");
-	Integer b("80000000000");
-	Integer c = a * b;
+	const Integer a("90000000000");
+	const Integer b("80000000000");
+	const Integer c = a * b;
 	printf("result=%s\n", c.toString().c_str());
 }
