@@ -68,10 +68,8 @@ Scaled Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
 		result.mkError();
 		return result;
 	}
-	// printf("functionCall: found %s\n", funcName.string.c_str()); // TEMP
 
 	if (pEntry->params == 1) {
-		// printf("calling 1 param func\n"); // TEMP
 		Scaled expr1 = expr(tokenizer);
 		if (!expr1.isNormal()) {
 			printf("functionCall: expr1 is not normal\n");
@@ -79,7 +77,6 @@ Scaled Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
 		}
 		const func1_t pFunc1 = (func1_t)pEntry->func;
 		result = (*pFunc1)(expr1);
-		// printf("result=%s\n", result.toString().c_str()); // TEMP
 	}
 	else if (pEntry->params == 2) {
 		Scaled expr1 = expr(tokenizer);
