@@ -43,7 +43,7 @@ INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795";
 INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2;
 INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2;
 
-#ifdef _MSC_VER
+#if defined(_WIN32) || defined(_WIN64)
 #define s_ScaledPiDiv2 (s_ScaledPi / 2)
 #define s_ScaledPiDiv4 (s_ScaledPi / 4)
 #else
