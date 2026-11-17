@@ -27,10 +27,13 @@ INLINE const Unsigned s_UnsignedSix(6);
 INLINE const int UNASSIGNED = -1;
 
 void Unsigned::pad(const long wantedLength) {
+	/*
 	mDigits.reserve((size_t)wantedLength);
 	while ((long)mDigits.size() < wantedLength) {
 		prepend(0);
 	}
+	*/
+	mDigits.insert(mDigits.begin(), wantedLength - (long)mDigits.size(), 0);
 }
 
 void Unsigned::append(const int digit, const long numberOfDigits) {
