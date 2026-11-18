@@ -7,7 +7,7 @@ I tried to do arbitrary percision real number (numbers with decimal points) math
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
-- abs, factorial, gcd, isprime, lcm, max, min, pow, sign, sqrt
+- abs(), cos(), factorial(), gcd(), isprime(), lcm(), max(), min(), random(), sign(), sin(), sqrt(), tan()
 - with real numbers (numbers with decimal points) of any length
 
 # Files
