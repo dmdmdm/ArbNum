@@ -43,19 +43,11 @@ INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795";
 INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2;
 INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2;
 
-#if defined(_WIN32) || defined(_WIN64)
-#define s_ScaledPiDiv2 (s_ScaledPi / 2)
-#define s_ScaledPiDiv4 (s_ScaledPi / 4)
-#else
-INLINE const Scaled s_ScaledPiDiv2 = s_ScaledPi / 2;
-INLINE const Scaled s_ScaledPiDiv4 = s_ScaledPi / 4;
-#endif
-
 // Precision and epsilon
 
 INLINE Scaled s_ScaledEpsilon("1e-7");
-INLINE long s_lDividePrecision = 20;
-INLINE double s_dCheckingEpsilon = 1e-6;
+INLINE long s_lDividePrecision = 21; // Needs to hardcoded since used right away
+INLINE double s_dCheckingEpsilon = s_ScaledEpsilon.toDouble() * 10;
 
 void Scaled::clear() {
 	mSpecial = SPEC_NORMAL;
@@ -137,20 +129,20 @@ Scaled Scaled::getPi() {
 }
 
 void Scaled::setScale(const long n) {
-	s_lDividePrecision = n;
 	s_ScaledEpsilon.set(1, n);
-	s_dCheckingEpsilon =  std::pow(1, - (n - 1));
+	s_lDividePrecision = n * 3;
+	s_dCheckingEpsilon = s_ScaledEpsilon.toDouble() * 10;
 }
 
 long Scaled::getScale() {
-	return s_lDividePrecision;
+	return s_ScaledEpsilon.mExp;
 }
 
 void Scaled::setSign(const Scaled &a) {
 	mUnscaled.setSign(a.mUnscaled);
 }
 
-Scaled::Scaled(const int &unscaled, const int &exp) {
+Scaled::Scaled(const long &unscaled, const long &exp) {
 	mUnscaled = unscaled;
 	mExp = exp;
 
@@ -571,7 +563,7 @@ Scaled Scaled::sin(const Scaled &xIn) {
 	}
 
 	Scaled out, chunk, sign(1), term;
-	for (int n = 0; n < 20; n++) {
+	for (long n = 0;; n++) {
 		chunk = 2 * n + 1;
 		term = pow(x, chunk) / factorial(chunk);
 		out += sign * term;
@@ -589,7 +581,7 @@ Scaled Scaled::cos(const Scaled &xIn) {
 	}
 
 	Scaled out, chunk, sign(1), term;
-	for (int n = 0; n < 20; n++) {
+	for (long n = 0;; n++) {
 		chunk = 2 * n;
 		term = pow(x, chunk) / factorial(chunk);
 		out += sign * term;
@@ -614,10 +606,16 @@ Scaled Scaled::tan(const Scaled &xIn) {
         sign = -1;
 	}
 
+	static Scaled PiDiv2, PiDiv4;
+	if (PiDiv2.isZero()) {
+		PiDiv2 = s_ScaledPi / 2;
+		PiDiv4 = s_ScaledPi / 4;
+	}
+
     // Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
     bool invert = false;
-    if (x > s_ScaledPiDiv4) {
-        x = s_ScaledPiDiv2 - x;
+    if (x > PiDiv4) {
+        x = PiDiv2 - x;
         invert = true;
 	}
 
@@ -970,6 +968,11 @@ bool Scaled::testAll() {
 	int nFail = 0;
 	const long startMs = currentMillis();
 	const bool is_home = isHome();
+
+	if (getScale() < 3 || getScale() > 9) {
+		ArbNum_log("Sorry scale must be in [3..9] for tests\n");
+		return false;
+	}
 
 	// Home settings
 	int testLimit = 120; // Seconds

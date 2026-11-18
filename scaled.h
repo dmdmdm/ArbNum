@@ -28,7 +28,7 @@ public:
 
 	// Constructors
 	Scaled() {};
-	Scaled(const int &unscaled, const int &exp);
+	Scaled(const long &unscaled, const long &exp);
 	Scaled(const Integer &);
 	Scaled(const char *a) { saveNumber(a); }
 	Scaled(const double);
