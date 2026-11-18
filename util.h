@@ -49,7 +49,9 @@ char *terminatingNul(char *);
 bool isSpace(const char *);
 bool hasContent(const char *);
 
-void safe_strcpy(char *dest, const char *src, const size_t size);
+void portable_strlcpy(char *dest, const char *src, const size_t size);
+
+int portable_stricmp(const char *, const char *);
 
 char *shuffle(char *dest, const char *src);
 

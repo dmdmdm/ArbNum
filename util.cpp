@@ -92,7 +92,7 @@ bool hasContent(const char *s) {
 	return ! isSpace(s);
 }
 
-void safe_strcpy(char *dest, const char *src, const size_t size) {
+void portable_strlcpy(char *dest, const char *src, const size_t size) {
     if (dest == nullptr || size == 0) return;
 
     if (src == nullptr) {
@@ -115,6 +115,17 @@ void safe_strcpy(char *dest, const char *src, const size_t size) {
 	strlcpy(dest, src, size);
 #else
 #error "Unknown operating system"
+#endif
+}
+
+int portable_stricmp(const char *a, const char *b) {
+    if (a == nullptr && b == nullptr) return 0;
+    if (a == nullptr || b == nullptr) return 1;
+
+#ifdef _MSC_VER
+	return stricmp(a, b);
+#else
+	return strcasecmp(a, b);
 #endif
 }
 

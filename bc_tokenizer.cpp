@@ -10,7 +10,7 @@
 #include "bc_tokenizer.h"
 
 std::string Token::toString() const {
-	return Tokenizer::typeStr(type) + " " + string;
+	return "{" + Tokenizer::typeStr(type) + " " + string + "}";
 }
 
 bool Tokenizer::isEol() {

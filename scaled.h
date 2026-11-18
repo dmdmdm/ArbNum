@@ -67,6 +67,9 @@ public:
 	inline long long toLongLong() const { return toInteger().toLongLong(); } // Loses precision and decimal part
 	std::string toDump() const;
 
+	static Scaled getPi();
+	static void setScale(const long);
+	static long getScale();
 	static void convertToSameExponent(Scaled &, Scaled &);
 	static void convertToZeroExponent(Scaled &, Scaled &); // Whole numbers
 	static Scaled abs(const Scaled &);
@@ -96,6 +99,7 @@ public:
 	static Scaled tan(const Scaled &);
 
 	void set(const Scaled &);
+	void set(const long unscaled, const long exp);
 	void add(const Scaled &);
 	void subtract(const Scaled &);
 	void multiply(const Scaled &);

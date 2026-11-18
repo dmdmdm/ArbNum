@@ -53,10 +53,9 @@ INLINE const Scaled s_ScaledPiDiv4 = s_ScaledPi / 4;
 
 // Precision and epsilon
 
-INLINE const Scaled s_ScaledEpsilon("1e-7");
-INLINE const long s_lDividePrecision = 20;
-// We calculate divide to 7 decimals and check to one less
-#define CHECKING_EPSILON (1e-6 )
+INLINE Scaled s_ScaledEpsilon("1e-7");
+INLINE long s_lDividePrecision = 20;
+INLINE double s_dCheckingEpsilon = 1e-6;
 
 void Scaled::clear() {
 	mSpecial = SPEC_NORMAL;
@@ -70,12 +69,12 @@ void Scaled::saveNumber(const char *in) {
 		return;
 	}
 
-#ifdef _MSC_VER
-	if (stricmp(in, "pi") == 0) {
-#else
-	if (strcasecmp(in, "pi") == 0) {
-#endif
+	if (strcmp(in, "pi") == 0) {
 		set(s_ScaledPi);
+		return;
+	}
+	else if (strcmp(in, "scale") == 0) { // 2026nov18
+		set(s_lDividePrecision);
 		return;
 	}
 
@@ -92,11 +91,7 @@ void Scaled::saveNumber(const char *in) {
 	// 1.234e+4 - scientific notation with decimal
 	
 	char buf[ARBNUM_BUF_SIZE];
-#ifdef _MSC_VER
-	lstrcpyn(buf, in, sizeof(buf));
-#else
-	safe_strcpy(buf, in, sizeof(buf));
-#endif
+	portable_strlcpy(buf, in, sizeof(buf));
 	char *p;
 
 	// Has an "e"?
@@ -135,6 +130,20 @@ void Scaled::saveNumber(const char *in) {
 	}
 
 	simplify();
+}
+
+Scaled Scaled::getPi() {
+	return s_ScaledPi;
+}
+
+void Scaled::setScale(const long n) {
+	s_lDividePrecision = n;
+	s_ScaledEpsilon.set(1, n);
+	s_dCheckingEpsilon =  std::pow(1, - (n - 1));
+}
+
+long Scaled::getScale() {
+	return s_lDividePrecision;
 }
 
 void Scaled::setSign(const Scaled &a) {
@@ -242,7 +251,10 @@ std::string Scaled::toString() const {
 		std::string str = mUnscaled.toStringNoSign();
 
 		// Ensure enough leading zeros
-		str.insert(str.begin(), (size_t)digits - str.length(), '0');
+		const long zerosNeeded = digits - (long)str.length();
+		if (zerosNeeded > 0) {
+			str.insert(str.begin(), (size_t)zerosNeeded, '0');
+		}
 
 		// Insert decimal point
 		str.insert(str.length() - (size_t)digits, 1, '.');
@@ -268,8 +280,21 @@ Integer Scaled::toInteger() const {
 }
 
 std::string Scaled::toDump() const {
-	const std::string strExp = mExp == 0 ? "0" : "-" + std::to_string(mExp);
-	return "{unscaled=" + mUnscaled.toString() + ", exp=" + strExp + "}";
+	switch(mSpecial) {
+	case SPEC_NORMAL:
+		{
+		const std::string strExp = mExp == 0 ? "0" : "-" + std::to_string(mExp);
+		return "{unscaled=" + mUnscaled.toString() + ", exp=" + strExp + "}";
+		}
+		break;
+	case SPEC_ERROR:
+		return "error";
+		break;
+	case SPEC_IGNORE:
+		return "ignore";
+		break;
+	}
+	return "unknown";
 }
 
 Scaled Scaled::abs(const Scaled &a) {
@@ -615,6 +640,11 @@ void Scaled::set(const Scaled &other) {
 	mExp = other.mExp;
 }
 
+void Scaled::set(const long unscaled, const long exp) {
+	mUnscaled = unscaled;
+	mExp = exp;
+}
+
 void Scaled::add(const Scaled &other) {
 	set(add(*this, other));
 }
@@ -653,15 +683,19 @@ Scaled Scaled::operator--(int) {
 // Testing
 
 // For comparing doubles
-static bool eq(const double a, const double b, const double epsilon = CHECKING_EPSILON) {
+static bool eq(const double a, const double b, double epsilon = 1) {
+	if (epsilon == 1) {
+		epsilon = s_dCheckingEpsilon;
+	}
+
 	return std::abs(a - b) < epsilon;
 }
 
-static bool ne(const double a, const double b, const double epsilon = CHECKING_EPSILON) {
+static bool ne(const double a, const double b, double epsilon = 1) {
 	return ! eq(a, b, epsilon);
 }
 
-static bool eqz(const double a, const double epsilon = CHECKING_EPSILON) {
+static bool eqz(const double a, double epsilon = 1) {
 	return eq(a, 0.0, epsilon);
 }
 

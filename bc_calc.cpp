@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <map>
+#include "util.h"
 #include "bc_calc.h"
 
 //------------------------------------------------------------------------------
@@ -24,12 +26,14 @@ static const Function s_Funcs[] = {
 	{"abs",			1, (void*) Scaled::abs},
 	{"cos",			1, (void*) Scaled::cos},
 	{"factorial",	1, (void*) Scaled::factorial},
+	{"floor",		1, (void*) Scaled::floor},
 	{"gcd",			2, (void*) Scaled::gcd},
 	{"isprime",		1, (void*) Scaled::isPrime},
 	{"lcm",			2, (void*) Scaled::lcm},
 	{"max",			2, (void*) Scaled::max},
 	{"min",			2, (void*) Scaled::min},
 	{"random", 		1, (void*) Scaled::random},
+	{"round", 		1, (void*) Scaled::round},
 	{"sign",		1, (void*) Scaled::sign},
 	{"sin",			1, (void*) Scaled::sin},
 	{"sqrt",		1, (void*) Scaled::sqrt},
@@ -64,7 +68,7 @@ Scaled Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
 
 	const Function *pEntry = findFunc(funcName.string.c_str());
 	if (pEntry == NULL) {
-		fprintf(stderr, "Unknown function '%s'\n", funcName.string.c_str());
+		ArbNum_log("Unknown function '%s'\n", funcName.string.c_str());
 		result.mkError();
 		return result;
 	}
@@ -88,19 +92,66 @@ Scaled Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
 		result = (*pFunc2)(expr1, expr2);
 	}
 	else {
-		fprintf(stderr, "Can not handle functions with more than 2 parameters, got '%s'\n", funcName.string.c_str());
+		ArbNum_log("Can not handle functions with more than 2 parameters, got '%s'\n", funcName.string.c_str());
 		result.mkError();
 		return result;
 	}
 
 	const Token closeBracket = tokenizer.getToken();
 	if (!closeBracket.isCloseBracket()) {
-		fprintf(stderr, "Expected close bracket, got '%s'\n", closeBracket.string.c_str());
+		ArbNum_log("Expected close bracket, got '%s'\n", closeBracket.string.c_str());
 		result.mkError();
 		return result;
 	}
 
 	return result;
+}
+
+//------------------------------------------------------------------------------
+// Variables
+
+static std::map<std::string, Scaled> s_Variables;
+
+void Calc::saveVariableValue(const std::string &name, const Scaled &value) {
+	// Special cases
+	if (name == "pi") {
+		ArbNum_log("Ignoring attempt to set 'pi'\n");
+		return;
+	}
+	else if (name == "scale") {
+		const long n = value.toLong();
+		if (n > 1000) {
+			ArbNum_log("Not allowing a scale larger than 1000.  We could do it but everything would be really slow\n");
+			return;
+		}
+		Scaled::setScale(n);
+		printf("You set the scale to %ld\n", n);
+		return;
+	}
+
+	s_Variables[name] = value;
+	printf("Saved %s = %s\n", name.c_str(), value.toString().c_str());
+}
+
+Scaled Calc::getVariableValue(const std::string &name) {
+	// Special cases
+	if (name == "pi") {
+		return Scaled::getPi();
+	}
+	else if (name == "scale") {
+		return Scaled::getScale();
+	}
+
+	auto it = s_Variables.find(name);
+	if (it == s_Variables.end()) {
+		ArbNum_log("Variable '%s' not found\n", name.c_str());
+		Scaled out;
+		out.mkError();
+		return out;
+	}
+
+	printf("Fetched variable '%s' as %s\n", name.c_str(), it->second.toString().c_str());
+	return it->second;
 }
 
 //------------------------------------------------------------------------------
@@ -115,6 +166,7 @@ void Calc::help() {
 	printf("102 %% 5 <enter>\n");
 	printf("2.1 ^ 10 <enter>\n");
 	printf("pi <enter>\n");
+	printf("scale = 50<enter> set number of decimal places\n");
 	printf("\n");
 	printf("Numbers of any length are supported, eg 2 ^ 100\n");
 	printf("String things together: 2 + 5 + 5 * 80000000000000000000000000\n");
@@ -164,42 +216,47 @@ Scaled Calc::simpleExpr(Tokenizer &tokenizer) {
 			license();
 			return ignore;
 		}
-		else if (tok1.string == "pi") {
-			Scaled pi("pi");
-			return pi;
-		}
 		else if (tok1.string == "tests") {
 			Scaled::testAll();
 			return ignore;
 		}
 
 		const Token tok2 = tokenizer.getToken();
-		if (!tok2.isOpenBracket()) {
-			fprintf(stderr, "Unknown command, try 'help'\n");
-			return err;
+		if (tok2.isOpenBracket()) { // Function call
+			a = functionCall(tok1, tokenizer);
+			return a;
 		}
+		else if (tok2.isEquals()) { // Assignment
+			const Scaled b = expr(tokenizer);
+			if (b.isNormal()) {
+				saveVariableValue(tok1.string, b);
+				return ignore;
+			}
+			return b;
+		}
+		tokenizer.ungetToken(tok2);
 
-		a = functionCall(tok1, tokenizer);
+		return getVariableValue(tok1.string);
 	}
 	else if (tok1.isOpenBracket()) {
 		a = expr(tokenizer);
 
 		const Token tok2 = tokenizer.getToken();
 		if (!tok2.isCloseBracket()) {
-			fprintf(stderr, "Expected close bracket, got '%s'\n", tok2.string.c_str());
+			ArbNum_log("Expected close bracket, got '%s'\n", tok2.string.c_str());
 			return err;
 		}
 	}
 	else if (tok1.isBang()) {	// ! <expr>
 		const Scaled b = expr(tokenizer);
 		if (!b.isNormal()) {
-			fprintf(stderr, "Expected ! <expr>\n");
+			ArbNum_log("Expected ! <expr>\n");
 			return err;
 		}
 		a = ! b;
 	}
 	else {
-		fprintf(stderr, "Expected number, open bracket or function call, got '%s'\n", tok1.string.c_str());
+		ArbNum_log("Expected number, open bracket or function call, got '%s'\n", tok1.string.c_str());
 		return err;
 	}
 
@@ -215,7 +272,7 @@ Scaled Calc::expr(Tokenizer &tokenizer) {
 		if (tok1.type == Token::T_EOL) break;
 
 		if (tok1.type != Token::T_PUNCT) {
-			fprintf(stderr, "Expected operator, got '%s'\n", tok1.string.c_str());
+			ArbNum_log("Expected operator, got '%s'\n", tok1.string.c_str());
 			a.mkError();
 			return a;
 		}
@@ -247,7 +304,7 @@ Scaled Calc::expr(Tokenizer &tokenizer) {
 			a.pow(b);
 		}
 		else {
-			fprintf(stderr, "Unknown operator %s\n", tok1.string.c_str());
+			ArbNum_log("Unknown operator %s\n", tok1.string.c_str());
 			a.mkError();
 			return a;
 		}

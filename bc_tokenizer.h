@@ -20,6 +20,7 @@ struct Token {
 	bool isOpenBracket() const { return type == T_PUNCT && string == "("; }
 	bool isCloseBracket() const { return type == T_PUNCT && string == ")"; }
 	bool isBang() const { return type == T_PUNCT && string == "!"; }
+	bool isEquals() const { return type == T_PUNCT && string == "="; }
 };
 
 class Tokenizer {

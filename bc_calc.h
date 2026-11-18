@@ -13,6 +13,8 @@ class Calc {
 	void license();
 	Scaled simpleExpr(Tokenizer &);
 	Scaled expr(Tokenizer &);
+	void saveVariableValue(const std::string &name, const Scaled &value);
+	Scaled getVariableValue(const std::string &name);
 
 public:
 	Calc() { }
