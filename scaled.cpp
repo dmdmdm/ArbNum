@@ -452,12 +452,22 @@ Scaled Scaled::floor(const Scaled &a) {
 	return a.toInteger();
 }
 
+Scaled Scaled::ceil(const Scaled &x) {
+	Scaled t = floor(x);			// Integer part, toward zero
+	const Scaled frac = x - t;		// Fractional part, same sign as x 
+
+    if (frac > 0) { t++; }
+    else if (frac < 0) { t--; }
+
+	return t;
+}
+
 Scaled Scaled::round(const Scaled &x) {
 	Scaled t = floor(x);			// Integer part, toward zero
 	const Scaled frac = x - t;		// Fractional part, same sign as x 
 
-    if (frac >= 0.5) { t += 1.0; }
-    else if (frac <= -0.5) { t -= 1.0; };
+    if (frac >= 0.5) { t++; }
+    else if (frac <= -0.5) { t--; }
 
     return t;
 }
@@ -521,11 +531,12 @@ Scaled Scaled::factorial(const Scaled &n) {
 // Newton's method
 Scaled Scaled::sqrt(const Scaled &a) {
 	if (a.isNegative()) {
-		ArbNum_log("sqrt: Attempt to take the square root of a negative number\n");
+		ArbNum_log("Attempt to take the square root of a negative number\n");
 		Scaled out;
 		out.mkError();
 		return out;
 	}
+	if (a.isOne()) return a;
 
 	Scaled x0 = half(a);
 	if (x0.isCloseToZero()) return a;
@@ -973,6 +984,8 @@ bool Scaled::testAll() {
 		ArbNum_log("Sorry scale must be in [3..9] for tests\n");
 		return false;
 	}
+
+	printf("testall for scale=%ld\n", getScale());
 
 	// Home settings
 	int testLimit = 120; // Seconds

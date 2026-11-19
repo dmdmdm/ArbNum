@@ -24,6 +24,7 @@ struct Function {
 // Alphabetical order
 static const Function s_Funcs[] = {
 	{"abs",			1, (void*) Scaled::abs},
+	{"ceil",		1, (void*) Scaled::ceil},
 	{"cos",			1, (void*) Scaled::cos},
 	{"factorial",	1, (void*) Scaled::factorial},
 	{"floor",		1, (void*) Scaled::floor},

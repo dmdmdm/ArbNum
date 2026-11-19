@@ -86,6 +86,7 @@ public:
 	static Scaled max(const Scaled &, const Scaled &);
 	static Scaled doNot(const Scaled &);
 	static Scaled floor(const Scaled &);
+	static Scaled ceil(const Scaled &);
 	static Scaled round(const Scaled &);
 	static Scaled pow(const Scaled &, const Scaled &);
 	static Scaled gcd(const Scaled &, const Scaled &);
