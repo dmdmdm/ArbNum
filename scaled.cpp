@@ -645,6 +645,7 @@ Scaled Scaled::tan(const Scaled &xIn) {
 }
 
 void Scaled::set(const Scaled &other) {
+	mSpecial = other.mSpecial;
 	mUnscaled = other.mUnscaled;
 	mExp = other.mExp;
 }
