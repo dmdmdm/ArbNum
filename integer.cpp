@@ -7,7 +7,8 @@
 #endif
 
 #include <limits.h>
-#include <math.h>
+#include <cmath>
+#include <numeric>
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
@@ -382,7 +383,8 @@ int Integer::toInt() const {
 		return -1;
 	}
 
-	return mSign * mUnsigned.toInt();
+	// This seems inefficient but check edge cases before changing to mSign * mUnsigned.toInt() or something
+	return atoi(toString().c_str());
 }
 
 long Integer::toLong() const {
@@ -539,7 +541,12 @@ long Integer::gcdLong(const long a, const long b) {
 
 bool Integer::testGcd(const long a, const long b) {
 	const long lResult = Integer::gcd(a, b).toLong();
+#if __cplusplus >= 201703L
+	const long lCorrect = std::gcd(a, b);
+#else
 	const long lCorrect = gcdLong(a, b);
+#endif
+
 	if (lResult != lCorrect) {
 		fprintf(stderr, "gcd(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
@@ -554,7 +561,19 @@ long Integer::lcmLong(const long a, const long b) {
 
 bool Integer::testLcm(const long a, const long b) {
 	const long lResult = Integer::lcm(a, b).toLong();
-	const long lCorrect = lcmLong(a, b);
+
+	long lCorrect;
+	if (a < 0 || b < 0) {
+		lCorrect = lcmLong(a, b);
+	}
+	else {
+#if __cplusplus >= 201703L
+		lCorrect = std::lcm(a, b);
+#else
+		lCorrect = lcmLong(a, b);
+#endif
+	}
+
 	if (lResult != lCorrect) {
 		fprintf(stderr, "lcm(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}

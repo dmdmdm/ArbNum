@@ -21,7 +21,7 @@ class Scaled {
 
 public:
 	void saveNumber(const char *);
-	void setSign(const Scaled &);
+	void copySign(const Scaled &);
 	void mkNegative() { mUnscaled.mkNegative(); }
 	int signInt() const { return mUnscaled.signInt(); }
 	void flipSign() { mUnscaled.flipSign(); }
@@ -85,6 +85,7 @@ public:
 	static Scaled min(const Scaled &, const Scaled &);
 	static Scaled max(const Scaled &, const Scaled &);
 	static Scaled doNot(const Scaled &);
+	static Scaled trunc(const Scaled &);
 	static Scaled floor(const Scaled &);
 	static Scaled ceil(const Scaled &);
 	static Scaled round(const Scaled &);
@@ -121,6 +122,9 @@ public:
 	static bool testStoreDouble(const double);
 	static bool testStoreLong(const long);
 	static bool testStoreLongLong(const long long);
+	static bool testFloor(const double);
+	static bool testCeil(const double);
+	static bool testRound(const double);
 	static int compareDouble(const double, const double);
 	static bool testCompare(const double, const double);
 	static bool testAdd(const double, const double);

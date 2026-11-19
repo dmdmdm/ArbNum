@@ -24,7 +24,7 @@ public:
 	void mkPositive() { mSign = 1; }
 	void flipSign() { mSign *= -1; }
 	int signInt() const { return mSign; }
-	void setSign(const Integer &other) { mSign = other.mSign; }
+	void copySign(const Integer &other) { mSign = other.mSign; }
 	void shiftLeft(const long numberOfDigits) { mUnsigned.shiftLeft(numberOfDigits); }
 	void shiftRight(const long numberOfDigits) { mUnsigned.shiftRight(numberOfDigits); }
 	long length() const { return mUnsigned.length(); }

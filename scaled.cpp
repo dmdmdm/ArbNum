@@ -61,11 +61,11 @@ void Scaled::saveNumber(const char *in) {
 		return;
 	}
 
-	if (strcmp(in, "pi") == 0) {
+	if (eq(in, "pi")) {
 		set(s_ScaledPi);
 		return;
 	}
-	else if (strcmp(in, "scale") == 0) { // 2026nov18
+	else if (eq(in, "scale")) { // 2026nov18
 		set(s_lDividePrecision);
 		return;
 	}
@@ -138,8 +138,8 @@ long Scaled::getScale() {
 	return s_ScaledEpsilon.mExp;
 }
 
-void Scaled::setSign(const Scaled &a) {
-	mUnscaled.setSign(a.mUnscaled);
+void Scaled::copySign(const Scaled &a) {
+	mUnscaled.copySign(a.mUnscaled);
 }
 
 Scaled::Scaled(const long &unscaled, const long &exp) {
@@ -381,8 +381,8 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 
     // Handle division by zero
     if (divisorIn.isZero()) {
-		out.mkError();
         ArbNum_log("Division by zero.  dividend=%s\n", dividendIn.toString().c_str());
+		out.mkError();
 		return out;
 	}
 
@@ -433,7 +433,7 @@ Scaled Scaled::mod(const Scaled &a, const Scaled &b) {
 		return out;
 	}
 
-	return a - b * Scaled::floor(a / b);
+	return a - b * Scaled::trunc(a / b);
 }
 
 Scaled Scaled::min(const Scaled &a, const Scaled &b) {
@@ -448,22 +448,32 @@ Scaled Scaled::doNot(const Scaled &a) {
 	return a.isZero() ? s_ScaledOne : s_ScaledZero;
 }
 
-Scaled Scaled::floor(const Scaled &a) {
+Scaled Scaled::trunc(const Scaled &a) {
 	return a.toInteger();
 }
 
-Scaled Scaled::ceil(const Scaled &x) {
-	Scaled t = floor(x);			// Integer part, toward zero
+Scaled Scaled::floor(const Scaled &x) {
+	Scaled t = trunc(x);			// Integer part, toward zero
 	const Scaled frac = x - t;		// Fractional part, same sign as x 
 
-    if (frac > 0) { t++; }
+    if (frac > 0) { /* do nothing */ }
     else if (frac < 0) { t--; }
 
 	return t;
 }
 
+Scaled Scaled::ceil(const Scaled &x) {
+	Scaled t = trunc(x);			// Integer part, toward zero
+	const Scaled frac = x - t;		// Fractional part, same sign as x 
+
+    if (frac > 0) { t++; }
+    else if (frac < 0) { /* do nothing */ }
+
+	return t;
+}
+
 Scaled Scaled::round(const Scaled &x) {
-	Scaled t = floor(x);			// Integer part, toward zero
+	Scaled t = trunc(x);			// Integer part, toward zero
 	const Scaled frac = x - t;		// Fractional part, same sign as x 
 
     if (frac >= 0.5) { t++; }
@@ -710,12 +720,12 @@ static bool eqz(const double a, double epsilon = 1) {
 }
 
 bool Scaled::testStoreStr(const char *in, const char *correct) {
-	const Scaled scaled(in);
+	const Scaled scaled(correct);
 	const std::string result = scaled.toString();
-	if (strcmp(result.c_str(), correct) != 0) {
+	if (ne(result.c_str(), correct)) {
 		fprintf(stderr, "Store Str %s = %s (Scaled) != %s (string) fail\n", in, result.c_str(), correct);
 	}
-	return strcmp(result.c_str(), correct) == 0;
+	return eq(result.c_str(), correct);
 }
 
 bool Scaled::testStoreDouble(const double dCorrect) {
@@ -745,6 +755,33 @@ bool Scaled::testStoreLongLong(const long long lCorrect) {
 	return lResult == lCorrect;
 }
 
+bool Scaled::testFloor(const double in) {
+	const double result = Scaled::floor(in).toDouble();
+	const double correct = std::floor(in);
+	if (result != correct) {
+		fprintf(stderr, "floor %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
+	}
+	return result == correct;
+}
+
+bool Scaled::testCeil(const double in) {
+	const double result = Scaled::ceil(in).toDouble();
+	const double correct = std::ceil(in);
+	if (result != correct) {
+		fprintf(stderr, "ceil %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
+	}
+	return result == correct;
+}
+
+bool Scaled::testRound(const double in) {
+	const double result = Scaled::round(in).toDouble();
+	const double correct = std::round(in);
+	if (result != correct) {
+		fprintf(stderr, "round %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
+	}
+	return result == correct;
+}
+
 int Scaled::compareDouble(const double a, const double b) {
 	if (a < b) return -1;
 	if (a > b) return 1;
@@ -752,64 +789,62 @@ int Scaled::compareDouble(const double a, const double b) {
 }
 
 bool Scaled::testCompare(const double a, const double b) {
-	const double dResult = Scaled::compare(a, b);
-	const double dCorrect = compareDouble(a, b);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "%g <> %g = %g (Scaled) != %g (long) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::compare(a, b);
+	const double correct = compareDouble(a, b);
+	if (ne(result, correct)) {
+		fprintf(stderr, "%g <> %g = %g (Scaled) != %g (long) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testAdd(const double a, const double b) {
-	const double dResult = Scaled::add(a, b).toDouble();
-	const double dCorrect = a + b;
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "%g + %g = %g (Scaled) != %g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::add(a, b).toDouble();
+	const double correct = a + b;
+	if (ne(result, correct)) {
+		fprintf(stderr, "%g + %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testSubtract(const double a, const double b) {
-	const double dResult = Scaled::subtract(a, b).toDouble();
-	const double dCorrect = a - b;
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "%g - %g = %g (Scaled) != %g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::subtract(a, b).toDouble();
+	const double correct = a - b;
+	if (ne(result, correct)) {
+		fprintf(stderr, "%g - %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testMultiply(const double a, const double b) {
-	const double dResult = Scaled::multiply(a, b).toDouble();
-	const double dCorrect = a * b;
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "%g * %g = %g (Scaled) != %g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::multiply(a, b).toDouble();
+	const double correct = a * b;
+	if (ne(result, correct)) {
+		fprintf(stderr, "%g * %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testDivide(const double a, const double b) {
-	const double dResult = Scaled::divide(a, b).toDouble();
-	const double dCorrect = a / b;
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "%g / %g = %g (Scaled) != %g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::divide(a, b).toDouble();
+	const double correct = a / b;
+	if (ne(result, correct)) {
+		fprintf(stderr, "%g / %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testMod(const double a, const double b) {
-	const double dResult = Scaled::mod(a, b).toDouble();
-	const double dCorrect = std::fmod(a, b);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "mod(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::mod(a, b).toDouble();
+	const double correct = std::fmod(a, b);
+	if (ne(result, correct)) {
+		fprintf(stderr, "mod(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testPi(const double mult, const double div) {
-	const Scaled a = s_ScaledPi * mult;
-	const Scaled b = s_ScaledPi / div;
-	const double aDouble = a.toDouble();
-	const double bDouble = b.toDouble();
+	const double aDouble = (s_ScaledPi * mult).toDouble();
+	const double bDouble = (s_ScaledPi / div).toDouble();
 	if (ne(aDouble, bDouble)) {
 		fprintf(stderr, "pi * %g = %g != pi / %g = %g fail\n", mult, aDouble, div, bDouble);
 	}
@@ -817,12 +852,12 @@ bool Scaled::testPi(const double mult, const double div) {
 }
 
 bool Scaled::testPow(const double a, const double b) {
-	const double dResult = Scaled::pow(a, b).toDouble();
-	const double dCorrect = std::pow(a, b);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "pow(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::pow(a, b).toDouble();
+	const double correct = std::pow(a, b);
+	if (ne(result, correct)) {
+		fprintf(stderr, "pow(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 double Scaled::gcdDouble(const double a, const double b) {
@@ -834,12 +869,12 @@ double Scaled::gcdDouble(const double a, const double b) {
 }
 
 bool Scaled::testGcd(const double a, const double b) {
-	const double dResult = Scaled::gcd(a, b).toDouble();
-	const double dCorrect = gcdDouble(a, b);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "gcd(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, dResult, dCorrect);
+	const double result = Scaled::gcd(a, b).toDouble();
+	const double correct = gcdDouble(a, b);
+	if (ne(result, correct)) {
+		fprintf(stderr, "gcd(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 double Scaled::lcmDouble(const double a, const double b) {
@@ -849,27 +884,27 @@ double Scaled::lcmDouble(const double a, const double b) {
 }
 
 bool Scaled::testLcm(const double a, const double b) {
-	const double dResult = Scaled::lcm(a, b).toDouble();
-	const double dCorrect = lcmDouble(a, b);
+	const double result = Scaled::lcm(a, b).toDouble();
+	const double correct = lcmDouble(a, b);
 
 	// If it has a large number of decimal places we have to allow more difference with the double result
 	double epsilon = 1e-6;
 	if (std::to_string(a).length() > 6) epsilon = .1;
 
-	if (ne(dResult, dCorrect, epsilon)) {
-		fprintf(stderr, "lcm(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, dResult, dCorrect);
+	if (ne(result, correct, epsilon)) {
+		fprintf(stderr, "lcm(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
 	}
-	return eq(dResult, dCorrect, epsilon);
+	return eq(result, correct, epsilon);
 }
 
 
 bool Scaled::testSqrt(const double a) {
-	const double dResult = Scaled::sqrt(a).toDouble();
-	const double dCorrect = std::sqrt(a);
-	if (ne(dResult,dCorrect)) {
-		fprintf(stderr, "sqrt(%g) = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	const double result = Scaled::sqrt(a).toDouble();
+	const double correct = std::sqrt(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "sqrt(%g) = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 // By Soma Mbadiwe on https://stackoverflow.com/questions/15743192/check-if-number-is-prime-number
@@ -889,12 +924,12 @@ double Scaled::isPrimeDouble(const double a) {
 }
 
 bool Scaled::testIsPrime(const double a) {
-	const double dResult = Scaled::isPrime(a).toDouble();
-	const double dCorrect = isPrimeDouble(a);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "isPrime(%g) = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	const double result = Scaled::isPrime(a).toDouble();
+	const double correct = isPrimeDouble(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "isPrime(%g) = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 double Scaled::factorialDouble(const double n) {
@@ -903,39 +938,39 @@ double Scaled::factorialDouble(const double n) {
 }
 
 bool Scaled::testFactorial(const double a) {
-	const double dResult = Scaled::factorial(a).toDouble();
-	const double dCorrect = factorialDouble(a);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "%g! = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	const double result = Scaled::factorial(a).toDouble();
+	const double correct = factorialDouble(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "%g! = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testSin(const double a) {
-	const double dResult = Scaled::sin(a).toDouble();
-	const double dCorrect = std::sin(a);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "sin %g = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	const double result = Scaled::sin(a).toDouble();
+	const double correct = std::sin(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "sin %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testCos(const double a) {
-	const double dResult = Scaled::cos(a).toDouble();
-	const double dCorrect = std::cos(a);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "cos %g = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	const double result = Scaled::cos(a).toDouble();
+	const double correct = std::cos(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "cos %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 bool Scaled::testTan(const double a) {
-	const double dResult = Scaled::tan(a).toDouble();
-	const double dCorrect = std::tan(a);
-	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "tan %g = %g (Scaled) != %g (double) fail\n", a, dResult, dCorrect);
+	const double result = Scaled::tan(a).toDouble();
+	const double correct = std::tan(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "tan %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
-	return eq(dResult, dCorrect);
+	return eq(result, correct);
 }
 
 // We iterate using long's and divide by 10 to get a double which we save.
@@ -982,7 +1017,7 @@ bool Scaled::testAll() {
 	const bool is_home = isHome();
 
 	if (getScale() < 3 || getScale() > 9) {
-		ArbNum_log("Sorry scale must be in [3..9] for tests\n");
+		ArbNum_log("Sorry scale must be 3 <= scale <= 9 for tests\n");
 		return false;
 	}
 
@@ -1045,6 +1080,40 @@ bool Scaled::testAll() {
 	for (int i = 0; i < nCheckLong; i++) {
 		printf("Testing store long long %ld\n", checkLong[i]);
 		if (testStoreLongLong(checkLong[i])) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	} }
+
+	{
+	const double  checkRounding[] = { -2, -1.6 -1.5, -1.4, 1.1, 0, 1.1, 1.5, 1.6, 2 };
+	const int nCheckRounding = sizeof(checkRounding) / sizeof(checkRounding[0]);
+
+	printf("Testing floor\n");
+	for (int i = 0; i < nCheckRounding; i++) {
+		if (testFloor(checkRounding[i])) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+
+	printf("Testing ceil\n");
+	for (int i = 0; i < nCheckRounding; i++) {
+		if (testCeil(checkRounding[i])) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+
+	printf("Testing round\n");
+	for (int i = 0; i < nCheckRounding; i++) {
+		if (testRound(checkRounding[i])) {
 			nSuccess++;
 		}
 		else {
@@ -1272,6 +1341,7 @@ bool Scaled::testAll() {
 	}
 
 the_end:
-	printTestResults("scaledTest", nSuccess, nFail, startMs);
+	const std::string testName = "scaledTest scale=" + std::to_string(getScale());
+	printTestResults(testName.c_str(), nSuccess, nFail, startMs);
 	return nFail == 0;
 }
