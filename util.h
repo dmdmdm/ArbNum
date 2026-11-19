@@ -5,12 +5,15 @@
 #pragma once
 
 #include <string>
+#include <string.h>
 
 //
 // Constants
 //
 
 enum { ARBNUM_BUF_SIZE = 1024 };
+
+enum { ARBNUM_LINE_SIZE = 1024 * 5 };
 
 #ifndef MAX_PATH
 #define MAX_PATH (256)
@@ -52,6 +55,22 @@ bool hasContent(const char *);
 void portable_strlcpy(char *dest, const char *src, const size_t size);
 
 int portable_stricmp(const char *, const char *);
+
+inline bool eq(const char *a, const char *b) {
+	return strcmp(a,b) == 0;
+}
+
+inline bool ne(const char *a, const char *b) {
+	return strcmp(a,b) != 0;
+}
+
+inline bool portable_ceq(const char *a, const char *b) {
+	return portable_stricmp(a,b) == 0;
+}
+
+inline bool portable_cne(const char *a, const char *b) {
+	return portable_stricmp(a,b) != 0;
+}
 
 char *shuffle(char *dest, const char *src);
 

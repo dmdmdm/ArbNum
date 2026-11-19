@@ -67,7 +67,7 @@ void getHostName(char *host, const size_t size) {
 bool isHome() {
 	char host[MAX_PATH] = "";
 	getHostName(host, sizeof(host));
-	return strcmp(host, "bolt") == 0 || strcmp(host, "DJM") == 0;
+	return portable_ceq(host, "bolt") || portable_ceq(host, "DJM");
 }
 
 //------------------------------------------------------------------------------
