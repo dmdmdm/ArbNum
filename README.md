@@ -1,13 +1,13 @@
 # ArbNum
 An arbitrary precision library and interactive terminal program.
 
-I tried to do arbitrary percision real number (numbers with decimal points) math as clearly as possible.  No crazy optimizations but somewhat performant.  The code is intended to be readable.
+I tried to do arbitrary precision real number (numbers with decimal points) math as clearly as possible.  No crazy optimizations but somewhat performant.  The code is intended to be readable.
 
 ![Demo](arbnum_demo.gif)
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
-- abs(), ceil(), cos(), factorial(), floor(), gcd(), isprime(), lcm(), max(), min(), random(), round(), sign(), sin(), sqrt(), tan()
+- abs() ceil() cos() factorial() floor() gcd() isprime() lcm() max() min() random() round() sign() sin() sqrt() tan()
 - with real numbers (numbers with decimal points) of any length
 
 # Files
