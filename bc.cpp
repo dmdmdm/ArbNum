@@ -29,13 +29,13 @@ static void usage() {
 
 int main(const int argc, char *argv[]) {
 	if (argc > 1) {
-		if (strcmp(argv[1], "-?") == 0) usage();
+		if (eq(argv[1], "-?")) usage();
 
-		if (strcmp(argv[1], "-t") == 0) {
+		if (eq(argv[1], "-t")) {
 			const bool result = Scaled::testAll();
 			exit(!result);
 		}
-		else if (strcmp(argv[1], "-T") == 0) {
+		else if (eq(argv[1], "-T")) {
 			int nSuccess = 0;
 			int nFail = 0;
 			const long startMs = currentMillis();
@@ -55,7 +55,7 @@ int main(const int argc, char *argv[]) {
 #ifdef __linux__
 	char	*line;
 #else
-	char	line[1024 * 5];
+	char	line[ARBNUM_LINE_SIZE];
 	char	*p;
 #endif
 
@@ -76,14 +76,15 @@ int main(const int argc, char *argv[]) {
 
 		calc.run(line);
 
+		const double durationSeconds = getDurationSeconds(startMs);
+		if (durationSeconds > 1 && ne(line,"tests")) {
+			// Don't print the duration for tests since it already does it
+			printf("Took %.1f seconds\n", durationSeconds);
+		}
+
 #ifdef __linux__
 		free(line);
 #endif
-
-		const double durationSeconds = getDurationSeconds(startMs);
-		if (durationSeconds > 1) {
-			printf("Took %.1f seconds\n", durationSeconds);
-		}
 	}
 #ifdef __linux__
 	putchar('\n');

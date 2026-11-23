@@ -18,6 +18,7 @@ class Integer {
 
 public:
 	long trimTrailing(const long);
+	long removeAtEnd(const long);
 	void clear();
 
 	void mkNegative() { mSign = -1; }

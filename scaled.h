@@ -25,6 +25,7 @@ public:
 	void mkNegative() { mUnscaled.mkNegative(); }
 	int signInt() const { return mUnscaled.signInt(); }
 	void flipSign() { mUnscaled.flipSign(); }
+	void trimToPrecision();
 
 	// Constructors
 	Scaled() {};
@@ -68,8 +69,9 @@ public:
 	std::string toDump() const;
 
 	static Scaled getPi();
-	static void setScale(const long);
-	static long getScale();
+	static Scaled getE();
+	static void setPrecisionGlobal(const long); // I prefer to call it this even though bc calls it 'scale'
+	static long getPrecisionGlobal();
 	static void convertToSameExponent(Scaled &, Scaled &);
 	static void convertToZeroExponent(Scaled &, Scaled &); // Whole numbers
 	static Scaled abs(const Scaled &);
@@ -85,7 +87,7 @@ public:
 	static Scaled min(const Scaled &, const Scaled &);
 	static Scaled max(const Scaled &, const Scaled &);
 	static Scaled doNot(const Scaled &);
-	static Scaled trunc(const Scaled &);
+	static Scaled trunc(const Scaled &a) { return a.toInteger(); }
 	static Scaled floor(const Scaled &);
 	static Scaled ceil(const Scaled &);
 	static Scaled round(const Scaled &);

@@ -7,14 +7,14 @@
 #include <string>
 #include <string.h>
 
-//
+//------------------------------------------------------------------------------
 // Constants
-//
 
 enum { ARBNUM_BUF_SIZE = 1024 };
 
 enum { ARBNUM_LINE_SIZE = 1024 * 5 };
 
+// pre-defined in Windows only
 #ifndef MAX_PATH
 #define MAX_PATH (256)
 #endif
@@ -25,15 +25,13 @@ enum { ARBNUM_LINE_SIZE = 1024 * 5 };
 #define INLINE static
 #endif
 
-//
+//------------------------------------------------------------------------------
 // Covert
-//
 
 #define MKLONG(_a) (long)(_a)
 
-//
+//------------------------------------------------------------------------------
 // Logging
-//
 
 typedef enum { AN_QUIET, AN_LOG } ArbNum_Logging;
 void ArbNum_setLogging(const ArbNum_Logging);
@@ -43,9 +41,8 @@ void ArbNum_log(const char *format, ...);
 
 bool isHome();
 
-//
+//------------------------------------------------------------------------------
 // Strings
-//
 
 char *terminatingNul(char *);
 
@@ -74,9 +71,8 @@ inline bool portable_cne(const char *a, const char *b) {
 
 char *shuffle(char *dest, const char *src);
 
-//
+//------------------------------------------------------------------------------
 // Time
-//
 
 long currentMillis();
 
@@ -84,9 +80,8 @@ double getDurationSeconds(const long startMs);
 
 void printTestResults(const char *testName, const int nSuccess, const int nFail, const long startMs);
 
-//
+//------------------------------------------------------------------------------
 // Math
-//
 
 long powLong(const long base, const long exp);
 

@@ -86,6 +86,10 @@ long Integer::trimTrailing(const long atMost) {
 	return mUnsigned.trimTrailing(atMost);
 }
 
+long Integer::removeAtEnd(const long n) {
+	return mUnsigned.removeAtEnd(n);
+}
+
 void Integer::clear() {
 	// A checker said mSign isn't set in this function but it is set in mkPositive()
 	mSpecial = SPEC_NORMAL;
@@ -669,8 +673,8 @@ bool Integer::testAll() {
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello", "-25" };
 	const int checkStrExpect[] = { 0, 0, 4, 4000, 0, -25 };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
+	printf("Testing store str with %d values\n", nCheckStr);
 	for (int i = 0; i < nCheckStr; i++) {
-		printf("Testing store str %s\n", checkStr[i]);
 		if (testStoreStr(checkStr[i], checkStrExpect[i])) {
 			nSuccess++;
 		}
@@ -683,8 +687,8 @@ bool Integer::testAll() {
 	{
 	const int checkInt[] = { INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX };
 	const int nCheckInt = sizeof(checkInt) / sizeof(checkInt[0]);
+	printf("Testing store int with %d values\n", nCheckInt);
 	for (int i = 0; i < nCheckInt; i++) {
-		printf("Testing store int %d\n", checkInt[i]);
 		if (testStoreInt(checkInt[i])) {
 			nSuccess++;
 		}
@@ -695,9 +699,9 @@ bool Integer::testAll() {
 
 	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
-	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
+	const int nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
+	printf("Testing store long with %d values\n", nCheckLong);
 	for (int i = 0; i < nCheckLong; i++) {
-		printf("Testing store long %ld\n", checkLong[i]);
 		if (testStoreLong(checkLong[i])) {
 			nSuccess++;
 		}
@@ -706,8 +710,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing store long long with %d values\n", nCheckLong);
 	for (int i = 0; i < nCheckLong; i++) {
-		printf("Testing store long long %ld\n", checkLong[i]);
 		if (testStoreLongLong(checkLong[i])) {
 			nSuccess++;
 		}
@@ -727,9 +731,10 @@ bool Integer::testAll() {
 	std::vector<long> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
 	makeTestValues(B_START, B_END, B_INC, b_values);
+	const long nValues = MKLONG(a_values.size() * b_values.size());
 
+	printf("Testing compare with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing compare with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (testCompare(a, b)) {
 				nSuccess++;
@@ -740,8 +745,8 @@ bool Integer::testAll() {
 		 }
 	}
 
+	printf("Testing add with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing add with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (testAdd(a, b)) {
 				nSuccess++;
@@ -752,8 +757,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing subtract with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing subtract with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (testSubtract(a, b)) {
 				nSuccess++;
@@ -764,8 +769,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing multiply with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing multiply with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (testMultiply(a, b)) {
 				nSuccess++;
@@ -776,8 +781,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing divide with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing divide with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (b == 0) continue; // Avoid divide by zero
 			if (testDivide(a, b)) {
@@ -789,8 +794,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing mod with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing mod with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (b == 0) continue; // Avoid divide by zero
 			if (testMod(a, b)) {
@@ -802,8 +807,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing pow with %ld values\n", nValues);
 	for (long a = -10; a <= 10; a++) {
-		printf("Testing pow with %ld on the left\n", a);
 		for (long b = 1; b <= 9; b++) {
 			if (testPow(a, b)) {
 				nSuccess++;
@@ -814,8 +819,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing gcd with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing gcd with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (testGcd(a, b)) {
 				nSuccess++;
@@ -826,8 +831,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing lcm with %ld values\n", nValues);
 	for (long a : a_values) {
-		printf("Testing lcm with %ld on the left\n", a);
 		for (long b : b_values) {
 			if (testLcm(a, b)) {
 				nSuccess++;
@@ -838,8 +843,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing sqrt with %ld values\n", A_END / A_INC);
 	for (long a = 0; a <= A_END; a += A_INC) {
-		printf("Testing sqrt with %ld\n", a);
 		if (testSqrt(a)) {
 			nSuccess++;
 		}
@@ -848,8 +853,8 @@ bool Integer::testAll() {
 		}
 	}
 
+	printf("Testing isPrime with %d values\n", 100);
 	for (long a = 0; a <= 100; a++) {
-		printf("Testing isPrime with %ld\n", a);
 		if (testIsPrime(a)) {
 			nSuccess++;
 		}
@@ -858,7 +863,7 @@ bool Integer::testAll() {
 		}
 	}
 
-	printf("Testing factorials: 1 to 13\n");
+	printf("Testing factorial with %d values\n", 13);
 	for (long a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
 			nSuccess++;

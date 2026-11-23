@@ -44,7 +44,7 @@ static const Function s_Funcs[] = {
 
 static const Function *findFunc(const char *name) {
 	for (const Function *pEntry = s_Funcs; pEntry->name; pEntry++) {
-		if (strcmp(pEntry->name, name) == 0) {
+		if (eq(pEntry->name, name)) {
 			return pEntry;
 		}
 	}
@@ -55,7 +55,7 @@ static const std::string getFuncs() {
 	std::string result;
 
 	for (const Function *pEntry = s_Funcs; pEntry->name; pEntry++) {
-		if (!result.empty()) result += ", ";
+		if (!result.empty()) result += " ";
 		result += (std::string)pEntry->name + (std::string)"()";
 	}
 	return result;
@@ -77,7 +77,8 @@ Scaled Calc::functionCall(Token funcName, Tokenizer &tokenizer) {
 	if (pEntry->params == 1) {
 		Scaled expr1 = expr(tokenizer);
 		if (!expr1.isNormal()) {
-			printf("functionCall: expr1 is not normal\n");
+			// Don't log anything here since a better error has probably already been written
+			// printf("functionCall: expr1 is not normal\n");
 			return expr1;
 		}
 		const func1_t pFunc1 = (func1_t)pEntry->func;
@@ -115,17 +116,21 @@ static std::map<std::string, Scaled> s_Variables;
 
 void Calc::saveVariableValue(const std::string &name, const Scaled &value) {
 	// Special cases
-	if (name == "pi") {
-		ArbNum_log("Ignoring attempt to set 'pi'\n");
+	if (name == "pi" || name == "e") {
+		ArbNum_log("Ignoring attempt to set '%s'\n", name.c_str());
 		return;
 	}
 	else if (name == "scale") {
 		const long n = value.toLong();
+		if (n < 0) {
+			ArbNum_log("Negative scale is not allowed\n");
+			return;
+		}
 		if (n > 1000) {
 			ArbNum_log("Not allowing a scale larger than 1000.  We could do it but everything would be really slow\n");
 			return;
 		}
-		Scaled::setScale(n);
+		Scaled::setPrecisionGlobal(n);
 		printf("You set the scale to %ld\n", n);
 		return;
 	}
@@ -139,11 +144,14 @@ Scaled Calc::getVariableValue(const std::string &name) {
 	if (name == "pi") {
 		return Scaled::getPi();
 	}
+	else if (name == "e") {
+		return Scaled::getE();
+	}
 	else if (name == "scale") {
-		return Scaled::getScale();
+		return Scaled::getPrecisionGlobal();
 	}
 
-	auto it = s_Variables.find(name);
+	const auto it = s_Variables.find(name);
 	if (it == s_Variables.end()) {
 		ArbNum_log("Variable '%s' not found\n", name.c_str());
 		Scaled out;
@@ -151,7 +159,6 @@ Scaled Calc::getVariableValue(const std::string &name) {
 		return out;
 	}
 
-	printf("Fetched variable '%s' as %s\n", name.c_str(), it->second.toString().c_str());
 	return it->second;
 }
 
@@ -257,7 +264,7 @@ Scaled Calc::simpleExpr(Tokenizer &tokenizer) {
 		a = ! b;
 	}
 	else {
-		ArbNum_log("Expected number, open bracket or function call, got '%s'\n", tok1.string.c_str());
+		ArbNum_log("Expected number, open bracket or function call, got '%s'.  Type 'help' for info.\n", tok1.string.c_str());
 		return err;
 	}
 

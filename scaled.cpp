@@ -40,6 +40,7 @@ INLINE const Scaled s_ScaledTwo = 2;
 INLINE const Scaled s_ScaledFour = 4;
 INLINE const Scaled s_ScaledMinusOne = -1;
 INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795";
+INLINE const Scaled s_ScaledE = "2.718281828459045235360287471352";
 INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2;
 INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2;
 
@@ -58,15 +59,6 @@ void Scaled::clear() {
 void Scaled::saveNumber(const char *in) {
 	if (strlen(in) == 0) {
 		set(s_ScaledZero);
-		return;
-	}
-
-	if (eq(in, "pi")) {
-		set(s_ScaledPi);
-		return;
-	}
-	else if (eq(in, "scale")) { // 2026nov18
-		set(s_lDividePrecision);
 		return;
 	}
 
@@ -125,21 +117,37 @@ void Scaled::saveNumber(const char *in) {
 }
 
 Scaled Scaled::getPi() {
-	return s_ScaledPi;
+	Scaled scaled = s_ScaledPi;
+	scaled.trimToPrecision();
+	return scaled;
 }
 
-void Scaled::setScale(const long n) {
+Scaled Scaled::getE() {
+	Scaled scaled = s_ScaledE;
+	scaled.trimToPrecision();
+	return scaled;
+}
+
+void Scaled::setPrecisionGlobal(const long n) {
 	s_ScaledEpsilon.set(1, n);
 	s_lDividePrecision = n * 3;
 	s_dCheckingEpsilon = s_ScaledEpsilon.toDouble() * 10;
 }
 
-long Scaled::getScale() {
+long Scaled::getPrecisionGlobal() {
 	return s_ScaledEpsilon.mExp;
 }
 
 void Scaled::copySign(const Scaled &a) {
 	mUnscaled.copySign(a.mUnscaled);
+}
+
+void Scaled::trimToPrecision() {
+	const long prec = getPrecisionGlobal();
+	if (mExp < prec) return;
+	const long n = mExp - prec;
+	const long nRemoved = mUnscaled.removeAtEnd(n);
+	mExp -= nRemoved;
 }
 
 Scaled::Scaled(const long &unscaled, const long &exp) {
@@ -448,13 +456,9 @@ Scaled Scaled::doNot(const Scaled &a) {
 	return a.isZero() ? s_ScaledOne : s_ScaledZero;
 }
 
-Scaled Scaled::trunc(const Scaled &a) {
-	return a.toInteger();
-}
-
 Scaled Scaled::floor(const Scaled &x) {
-	Scaled t = trunc(x);			// Integer part, toward zero
-	const Scaled frac = x - t;		// Fractional part, same sign as x 
+	Scaled t = Scaled::trunc(x); // Integer part, toward zero
+	const Scaled frac = x - t; // Fractional part, same sign as x 
 
     if (frac > 0) { /* do nothing */ }
     else if (frac < 0) { t--; }
@@ -463,8 +467,8 @@ Scaled Scaled::floor(const Scaled &x) {
 }
 
 Scaled Scaled::ceil(const Scaled &x) {
-	Scaled t = trunc(x);			// Integer part, toward zero
-	const Scaled frac = x - t;		// Fractional part, same sign as x 
+	Scaled t = Scaled::trunc(x); // Integer part, toward zero
+	const Scaled frac = x - t; // Fractional part, same sign as x 
 
     if (frac > 0) { t++; }
     else if (frac < 0) { /* do nothing */ }
@@ -473,8 +477,8 @@ Scaled Scaled::ceil(const Scaled &x) {
 }
 
 Scaled Scaled::round(const Scaled &x) {
-	Scaled t = trunc(x);			// Integer part, toward zero
-	const Scaled frac = x - t;		// Fractional part, same sign as x 
+	Scaled t = Scaled::trunc(x); // Integer part, toward zero
+	const Scaled frac = x - t; // Fractional part, same sign as x 
 
     if (frac >= 0.5) { t++; }
     else if (frac <= -0.5) { t--; }
@@ -484,8 +488,7 @@ Scaled Scaled::round(const Scaled &x) {
 
 Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
 	if (base.isZero()) { return s_ScaledZero; }
-	if (base.isOne()) { return s_ScaledOne; }
-	if (exp.isZero()) { return s_ScaledOne; }
+	if (base.isOne() || exp.isZero()) { return s_ScaledOne; }
 
 	if (exp.isInteger()) {
 		const Scaled x = pow(base, halfInt(exp)); // Recursive
@@ -870,7 +873,7 @@ double Scaled::gcdDouble(const double a, const double b) {
 
 bool Scaled::testGcd(const double a, const double b) {
 	const double result = Scaled::gcd(a, b).toDouble();
-	const double correct = gcdDouble(a, b);
+	const double correct = gcdDouble(a, b); // std::gcd() does't do double
 	if (ne(result, correct)) {
 		fprintf(stderr, "gcd(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
@@ -885,7 +888,7 @@ double Scaled::lcmDouble(const double a, const double b) {
 
 bool Scaled::testLcm(const double a, const double b) {
 	const double result = Scaled::lcm(a, b).toDouble();
-	const double correct = lcmDouble(a, b);
+	const double correct = lcmDouble(a, b); // std::lcm() doesn't do double
 
 	// If it has a large number of decimal places we have to allow more difference with the double result
 	double epsilon = 1e-6;
@@ -1008,20 +1011,22 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 }
 
 
-#undef TEST_TRIG_ONLY
-
 bool Scaled::testAll() {
 	int nSuccess = 0;
 	int nFail = 0;
-	const long startMs = currentMillis();
 	const bool is_home = isHome();
+	const long precision = getPrecisionGlobal();
+	const std::string testName = "scaledTest scale=" + std::to_string(precision);
 
-	if (getScale() < 3 || getScale() > 9) {
-		ArbNum_log("Sorry scale must be 3 <= scale <= 9 for tests\n");
+	if (precision < 3 || precision > 9) {
+		ArbNum_log("Sorry, scale must be 3 <= scale <= 9 for tests\n");
 		return false;
 	}
 
-	printf("testall for scale=%ld\n", getScale());
+	printf("Starting %s\n", testName.c_str());
+
+	// Start the timer here to avoid some of that setup stuff
+	const long startMs = currentMillis();
 
 	// Home settings
 	int testLimit = 120; // Seconds
@@ -1033,14 +1038,13 @@ bool Scaled::testAll() {
 		trigInc *= 2;
 	}
 
-#ifndef TEST_TRIG_ONLY
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	{
 	const char *checkStr[] =       { "1e+4",  "1e-4",  "",  "0000", "0004", "4000", "hello", "-25", "123456789012345678901234567890" };
 	const char *checkStrExpect[] = { "10000", ".0001", "0", "0",       "4", "4000",     "0", "-25", "123456789012345678901234567890" };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
+	printf("Testing store str with %d values\n", nCheckStr);
 	for	 (int i = 0; i < nCheckStr; i++) {
-		printf("Testing store str %s\n", checkStr[i]);
 		if (testStoreStr(checkStr[i], checkStrExpect[i])) {
 			nSuccess++;
 		}
@@ -1053,8 +1057,8 @@ bool Scaled::testAll() {
 	{
 	const double checkDouble[] = { 9.3, 9.000001, -4, 0.0003 };
 	const int nCheckDouble = sizeof(checkDouble) / sizeof(checkDouble[0]);
+	printf("Testing store double with %d values\n", nCheckDouble);
 	for (int i = 0; i < nCheckDouble; i++) {
-		printf("Testing store double %g\n", checkDouble[i]);
 		if (testStoreDouble(checkDouble[i])) {
 			nSuccess++;
 		}
@@ -1065,10 +1069,9 @@ bool Scaled::testAll() {
 
 	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
-	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
-
+	const int nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
+	printf("Testing store long with %d values\n", nCheckLong);
 	for (int i = 0; i < nCheckLong; i++) {
-		printf("Testing store long %ld\n", checkLong[i]);
 		if (testStoreLong(checkLong[i])) {
 			nSuccess++;
 		}
@@ -1077,8 +1080,8 @@ bool Scaled::testAll() {
 		}
 	}
 
+	printf("Testing store long long with %d values\n", nCheckLong);
 	for (int i = 0; i < nCheckLong; i++) {
-		printf("Testing store long long %ld\n", checkLong[i]);
 		if (testStoreLongLong(checkLong[i])) {
 			nSuccess++;
 		}
@@ -1088,10 +1091,10 @@ bool Scaled::testAll() {
 	} }
 
 	{
-	const double  checkRounding[] = { -2, -1.6 -1.5, -1.4, 1.1, 0, 1.1, 1.5, 1.6, 2 };
+	const double  checkRounding[] = { -2, -1.6 -1.5, -1.4, 0, 1.4, 1.5, 1.6, 2 };
 	const int nCheckRounding = sizeof(checkRounding) / sizeof(checkRounding[0]);
 
-	printf("Testing floor\n");
+	printf("Testing floor with %d values\n", nCheckRounding);
 	for (int i = 0; i < nCheckRounding; i++) {
 		if (testFloor(checkRounding[i])) {
 			nSuccess++;
@@ -1101,7 +1104,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	printf("Testing ceil\n");
+	printf("Testing ceil with %d values\n", nCheckRounding);
 	for (int i = 0; i < nCheckRounding; i++) {
 		if (testCeil(checkRounding[i])) {
 			nSuccess++;
@@ -1111,7 +1114,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	printf("Testing round\n");
+	printf("Testing round with %d values\n", nCheckRounding);
 	for (int i = 0; i < nCheckRounding; i++) {
 		if (testRound(checkRounding[i])) {
 			nSuccess++;
@@ -1143,10 +1146,10 @@ bool Scaled::testAll() {
 	std::vector<double> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
 	makeTestValues(B_START, B_END, B_INC, b_values);
-	printf("Number of tests per function=%ld\n", MKLONG(a_values.size() * b_values.size()));
+	const long nValues = MKLONG(a_values.size() * b_values.size());
 
+	printf("Testing compare with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing compare with %g on the left\n", a);
 		for (double b : b_values) {
 			if (testCompare(a, b)) {
 				nSuccess++;
@@ -1157,8 +1160,8 @@ bool Scaled::testAll() {
 		 }
 	}
 
+	printf("Testing add with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing add with %g on the left\n", a);
 		for (double b : b_values) {
 			if (testAdd(a, b)) {
 				nSuccess++;
@@ -1169,8 +1172,8 @@ bool Scaled::testAll() {
 		}
 	}
 
+	printf("Testing subtract with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing subtract with %g on the left\n", a);
 		for (double b : b_values) {
 			if (testSubtract(a, b)) {
 				nSuccess++;
@@ -1181,8 +1184,8 @@ bool Scaled::testAll() {
 		}
 	}
 
+	printf("Testing multiply with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing multiply with %g on the left\n", a);
 		for (double b : b_values) {
 			if (testMultiply(a, b)) {
 				nSuccess++;
@@ -1193,8 +1196,8 @@ bool Scaled::testAll() {
 		}
 	}
 
+	printf("Testing divide with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing divide with %g on the left\n", a);
 		for (double b : b_values) {
 			if (b == 0) continue; // Avoid divide by zero
 			if (testDivide(a, b)) {
@@ -1206,8 +1209,8 @@ bool Scaled::testAll() {
 		}
 	}
 
+	printf("Testing mod with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing mod with %g on the left\n", a);
 		for (double b : b_values) {
 			if (b == 0) continue; // Avoid divide by zero
 			if (testMod(a, b)) {
@@ -1220,11 +1223,11 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	printf("Testing pi math\n");
 	{
 	const double testPiMult[] = { .5, -.5, .25, -.25 };
 	const double testPiDiv[] = { 2, -2, 4, -4 };
 	const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
+	printf("Testing pi math with %d values\n", nTestPi);
 	for (int i = 0; i < nTestPi; i++) {
 		if (testPi(testPiMult[i], testPiDiv[i])) {
 			nSuccess++;
@@ -1235,8 +1238,8 @@ bool Scaled::testAll() {
 	} }		
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing pow with %d values\n", 20 * 9);
 	for (double a = -10; a <= 10; a++) {
-		printf("Testing pow with %g on the left\n", a);
 		for (double b = 1; b <= 9; b++) {
 			if (testPow(a, b)) {
 				nSuccess++;
@@ -1248,8 +1251,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing gcd with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing gcd with %g on the left\n", a);
 		for (double b : b_values) {
 			if (testGcd(a, b)) {
 				nSuccess++;
@@ -1261,8 +1264,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing lcm with %ld values\n", nValues);
 	for (double a : a_values) {
-		printf("Testing lcm with %g on the left\n", a);
 		for (double b : b_values) {
 			if (testLcm(a, b)) {
 				nSuccess++;
@@ -1274,8 +1277,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing sqrt with %ld values\n", nValues);
 	for (double a = 0; a <= A_END; a += (double)A_INC) {
-		printf("Testing sqrt with %g\n", a);
 		if (testSqrt(a)) {
 			nSuccess++;
 		}
@@ -1285,8 +1288,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing isPrime with %d values\n", 50 / 3);
 	for (double a = 0; a <= 50; a+= 3) {
-		printf("Testing isPrime with %g\n", a);
 		if (testIsPrime(a)) {
 			nSuccess++;
 		}
@@ -1296,7 +1299,7 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	printf("Testing factorials: 1 to 13\n");
+	printf("Testing factorial with %d values\n", 13);
 	for (double a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
 			nSuccess++;
@@ -1305,11 +1308,10 @@ bool Scaled::testAll() {
 			nFail++;
 		}
 	}
-#endif
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing sin with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
-		printf("Testing sin with %g\n", a);
 		if (testSin(a)) {
 			nSuccess++;
 		}
@@ -1319,8 +1321,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing cos with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
-		printf("Testing cos with %g\n", a);
 		if (testCos(a)) {
 			nSuccess++;
 		}
@@ -1330,8 +1332,8 @@ bool Scaled::testAll() {
 	}
 
 	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	printf("Testing tan with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
-		printf("Testing tan with %g\n", a);
 		if (testTan(a)) {
 			nSuccess++;
 		}
@@ -1341,7 +1343,6 @@ bool Scaled::testAll() {
 	}
 
 the_end:
-	const std::string testName = "scaledTest scale=" + std::to_string(getScale());
 	printTestResults(testName.c_str(), nSuccess, nFail, startMs);
 	return nFail == 0;
 }

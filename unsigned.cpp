@@ -7,7 +7,8 @@
 #endif
 
 #include <limits.h>
-#include <math.h>
+#include <cmath>
+#include <numeric>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h> // For random seed
@@ -137,10 +138,17 @@ long Unsigned::trimTrailing(const long atMost) {
 		nTrailing++;
 	}
 
-	if (nTrailing == 0) return nTrailing;
+	if (nTrailing == 0) return 0;
 
 	mDigits.erase(mDigits.end() - nTrailing, mDigits.end());
 	return nTrailing;
+}
+
+long Unsigned::removeAtEnd(const long atMost) {
+	const long nRemoved = std::min(atMost, (long)mDigits.size());
+	if (nRemoved <= 0) return 0;
+	mDigits.erase(mDigits.end() - nRemoved, mDigits.end());
+	return nRemoved;
 }
 
 int Unsigned::charToInt(const char c) {
@@ -179,12 +187,13 @@ void Unsigned::saveNumber(const char *s) {
 	trimLeading();
 }
 
+// No validity checking
 inline char intToCharFast(const int n) {
 	return (char)(n + '0');
 }
 
 std::string Unsigned::toString() const {
-	if (mDigits.size() == 0) {
+	if (mDigits.empty()) {
 		return "0";
 	}
 
@@ -850,7 +859,11 @@ unsigned int Unsigned::gcdNativeUnsigned(const unsigned int a, const unsigned in
 
 bool Unsigned::testGcd(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::gcd(a, b).toUnsignedInt();
+#if __cplusplus >= 201703L
+	const unsigned int correct = std::gcd(a, b);
+#else
 	const unsigned int correct = gcdNativeUnsigned(a, b);
+#endif
 	if (result != correct) {
 		fprintf(stderr, "gcd(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
@@ -865,7 +878,11 @@ unsigned int Unsigned::lcmNativeUnsigned(const unsigned int a, const unsigned in
 
 bool Unsigned::testLcm(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::lcm(a, b).toUnsignedInt();
+#if __cplusplus >= 201703L
+	const unsigned int correct = std::lcm(a, b);
+#else
 	const unsigned int correct = lcmNativeUnsigned(a, b);
+#endif
 	if (result != correct) {
 		fprintf(stderr, "lcm(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
@@ -970,8 +987,8 @@ bool Unsigned::testAll() {
 	const char *checkStr[] = { "", "0000", "0004", "4000", "hello" };
 	const unsigned int checkStrExpect[] = { 0, 0, 4, 4000, 0 };
 	const int nCheckStr = sizeof(checkStr) / sizeof(checkStr[0]);
+	printf("Testing store str with %d values\n", nCheckStr);
 	for (int i = 0; i < nCheckStr; i++) {
-		printf("Testing store str %s\n", checkStr[i]);
 		if (testStoreStr(checkStr[i], checkStrExpect[i])) {
 			nSuccess++;
 		}
@@ -984,8 +1001,8 @@ bool Unsigned::testAll() {
 	{
 	const unsigned int checkUnsignedInt[] = { 9, 4, 3 };
 	const int nCheckUnsignedInt = sizeof(checkUnsignedInt) / sizeof(checkUnsignedInt[0]);
+	printf("Testing store unsigned int with %d values\n", nCheckUnsignedInt);
 	for (int i = 0; i < nCheckUnsignedInt; i++) {
-		printf("Testing store unsigned int %u\n", checkUnsignedInt[i]);
 		if (testStoreUnsigned(checkUnsignedInt[i])) {
 			nSuccess++;
 		}
@@ -996,10 +1013,10 @@ bool Unsigned::testAll() {
 
 	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
-	const long nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
+	const int nCheckLong = sizeof(checkLong) / sizeof(checkLong[0]);
+	printf("Testing store long with %d values\n", nCheckLong);
 	for (int i = 0; i < nCheckLong; i++) {
 		if (checkLong[i] < 0) continue; // Skip negative (since we're unsigned)
-		printf("Testing store long %ld\n", checkLong[i]);
 		if (testStoreLong(checkLong[i])) {
 			nSuccess++;
 		}
@@ -1008,9 +1025,9 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing store long long with %d values\n", nCheckLong);
 	for (int i = 0; i < nCheckLong; i++) {
 		if (checkLong[i] < 0) continue; // Skip negative (since we're unsigned)
-		printf("Testing store long long %ld\n", checkLong[i]);
 		if (testStoreLongLong(checkLong[i])) {
 			nSuccess++;
 		}
@@ -1030,9 +1047,10 @@ bool Unsigned::testAll() {
 	std::vector<unsigned int> a_values, b_values;
 	makeTestValues(A_START, A_END, A_INC, a_values);
 	makeTestValues(B_START, B_END, B_INC, b_values);
+	const long nValues = a_values.size() * b_values.size();
 
+	printf("Testing compare with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing compare with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (testCompare(a, b)) {
 				nSuccess++;
@@ -1043,8 +1061,8 @@ bool Unsigned::testAll() {
 		 }
 	}
 
+	printf("Testing add with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing add with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (testAdd(a, b)) {
 				nSuccess++;
@@ -1055,8 +1073,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing subtract with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing subtract with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (b > a) continue; // Avoid negative results (signed we're unsigned)
 			if (testSubtract(a, b)) {
@@ -1068,8 +1086,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing multiply with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing multiply with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (testMultiply(a, b)) {
 				nSuccess++;
@@ -1080,8 +1098,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing divide with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing divide with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (b == 0) continue; // Avoid divide by zero
 			if (testDivide(a, b)) {
@@ -1093,8 +1111,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing mod with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing mod with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (b == 0) continue; // Avoid divide by zero
 			if (testMod(a, b)) {
@@ -1106,8 +1124,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing pow with %ld values\n", nValues);
 	for (unsigned int a = 0; a <= 10; a++) {
-		printf("Testing pow with %u on the left\n", a);
 		for (unsigned int b = 1; b <= 9; b++) {
 			if (testPow(a, b)) {
 				nSuccess++;
@@ -1118,8 +1136,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing gcd with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing gcd with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (testGcd(a, b)) {
 				nSuccess++;
@@ -1130,8 +1148,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing lcm with %ld values\n", nValues);
 	for (unsigned int a : a_values) {
-		printf("Testing lcm with %u on the left\n", a);
 		for (unsigned int b : b_values) {
 			if (testLcm(a, b)) {
 				nSuccess++;
@@ -1142,8 +1160,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing sqrt with %d values\n", A_END / A_INC);
 	for (unsigned int a = 0; a <= A_END; a += A_INC) {
-		printf("Testing sqrt with %u\n", a);
 		if (testSqrt(a)) {
 			nSuccess++;
 		}
@@ -1152,8 +1170,8 @@ bool Unsigned::testAll() {
 		}
 	}
 
+	printf("Testing isPrime with %d values\n", 100);
 	for (unsigned int a = 0; a <= 100; a++) {
-		printf("Testing isPrime with %u\n", a);
 		if (testIsPrime(a)) {
 			nSuccess++;
 		}
@@ -1162,7 +1180,7 @@ bool Unsigned::testAll() {
 		}
 	}
 
-	printf("Testing factorials: 1 to 13\n");
+	printf("Testing factorial with %d values\n", 13);
 	for (unsigned int a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
 			nSuccess++;
