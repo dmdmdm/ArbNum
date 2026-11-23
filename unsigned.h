@@ -35,6 +35,7 @@ class Unsigned {
 public:
 	void trimLeading();
 	long trimTrailing(const long);
+	long removeAtEnd(const long);
 	void clear();
 	void append(const int digit, const long numberOfDigits);
 	void shiftLeft(const long numberOfDigits) { append(0, numberOfDigits); }
