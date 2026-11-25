@@ -925,6 +925,15 @@ bool Scaled::testStoreDouble(const double dCorrect) {
 	return eq(dResult, dCorrect);
 }
 
+bool Scaled::testStoreLongDouble(const long double dCorrect) {
+	const Scaled scaled(dCorrect);
+	const long double dResult = scaled.toLongDouble();
+	if (NE(dResult, dCorrect)) {
+		printf("Store Long Double %Lg = %Lg (Scaled) != %Lg (double) fail\n", dCorrect, dResult, dCorrect);
+	}
+	return EQ(dResult, dCorrect);
+}
+
 bool Scaled::testStoreLong(const long lCorrect) {
 	const Scaled scaled(lCorrect);
 	const long lResult = scaled.toLong();
@@ -1267,6 +1276,16 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 	printf("Testing store double with %d values\n", nCheckDouble);
 	for (int i = 0; i < nCheckDouble; i++) {
 		if (testStoreDouble(checkDouble[i])) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+
+	printf("Testing store long double with %d values\n", nCheckDouble);
+	for (int i = 0; i < nCheckDouble; i++) {
+		if (testStoreLongDouble(checkDouble[i])) {
 			nSuccess++;
 		}
 		else {

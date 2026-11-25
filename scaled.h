@@ -131,6 +131,7 @@ public:
 
 	static bool testStoreStr(const char *, const char *);
 	static bool testStoreDouble(const double);
+	static bool testStoreLongDouble(const long double);
 	static bool testStoreLong(const long);
 	static bool testStoreLongLong(const long long);
 	static bool testFloor(const double);
