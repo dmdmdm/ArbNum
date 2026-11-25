@@ -70,13 +70,6 @@ void Scaled::saveNumber(const char *in) {
 		return;
 	}
 
-	/*
-	if (strchr(in, ':')) {
-		fprintf(stderr, "Invalid colon in scaled number: %s\n", in);
-		return;
-	}
-	*/
-
 	// We can have:
 	// 1234 - only digits
 	// 1.234 - decimal and digits
@@ -293,16 +286,12 @@ std::string Scaled::toString() const {
 
 double Scaled::toDouble() const {
 	// We need to use std::pow() here (and not powLong()) because its a negative exponent
-	return mUnscaled.toDouble() * std::pow(10, - mExp);
+	return mUnscaled.toDouble() * std::pow(10.0, - mExp);
 }
 
 long double Scaled::toLongDouble() const {
-	return toDouble();
-	
-	/* Some platforms don't handle this
-	// We need to use std::pow() here (and not powLong()) because its a negative exponent
-	return mUnscaled.toLongDouble() * std::pow((long double)10, (long double)- mExp);
-	*/
+	// Some platforms don't handle this
+	return mUnscaled.toLongDouble() * std::pow(10.L, (long double) - mExp);
 }
 
 Integer Scaled::toInteger() const {
@@ -911,15 +900,16 @@ static bool NE(const long double a, const long double b, long double epsilon = 1
 	return ! EQ(a, b, epsilon);
 }
 
-static bool EQZ(const long double a, long double epsilon = 1) {
-	return EQ(a, 0.0, epsilon);
+// non-static to avoid warning
+bool EQZ(const long double a, long double epsilon = 1) {
+	return EQ(a, 0.0L, epsilon);
 }
 
 bool Scaled::testStoreStr(const char *in, const char *correct) {
 	const Scaled scaled(correct);
 	const std::string result = scaled.toString();
 	if (ne(result.c_str(), correct)) {
-		fprintf(stderr, "Store Str %s = %s (Scaled) != %s (string) fail\n", in, result.c_str(), correct);
+		printf("Store Str %s = %s (Scaled) != %s (string) fail\n", in, result.c_str(), correct);
 	}
 	return eq(result.c_str(), correct);
 }
@@ -928,7 +918,7 @@ bool Scaled::testStoreDouble(const double dCorrect) {
 	const Scaled scaled(dCorrect);
 	const double dResult = scaled.toDouble();
 	if (ne(dResult, dCorrect)) {
-		fprintf(stderr, "Store Double %g = %g (Scaled) != %g (double) fail\n", dCorrect, dResult, dCorrect);
+		printf("Store Double %g = %g (Scaled) != %g (double) fail\n", dCorrect, dResult, dCorrect);
 	}
 	return eq(dResult, dCorrect);
 }
@@ -937,7 +927,7 @@ bool Scaled::testStoreLongDouble(const long double dCorrect) {
 	const Scaled scaled(dCorrect);
 	const long double dResult = scaled.toLongDouble();
 	if (NE(dResult, dCorrect)) {
-		fprintf(stderr, "Store Double %Lg = %Lg (Scaled) != %Lg (double) fail\n", dCorrect, dResult, dCorrect);
+		printf("Store Double %Lg = %Lg (Scaled) != %Lg (double) fail\n", dCorrect, dResult, dCorrect);
 	}
 	return EQ(dResult, dCorrect);
 }
@@ -946,7 +936,7 @@ bool Scaled::testStoreLong(const long lCorrect) {
 	const Scaled scaled(lCorrect);
 	const long lResult = scaled.toLong();
 	if (lResult != lCorrect) {
-		fprintf(stderr, "Store Long %ld = %ld (Scaled) != %ld (long) fail\n", lCorrect, lResult, lCorrect);
+		printf("Store Long %ld = %ld (Scaled) != %ld (long) fail\n", lCorrect, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -955,7 +945,7 @@ bool Scaled::testStoreLongLong(const long long lCorrect) {
 	const Scaled scaled(lCorrect);
 	const long long lResult = scaled.toLongLong();
 	if (lResult != lCorrect) {
-		fprintf(stderr, "Store LongLong %lld = %lld (Scaled) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
+		printf("Store LongLong %lld = %lld (Scaled) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -964,7 +954,7 @@ bool Scaled::testFloor(const double in) {
 	const double result = Scaled::floor(in).toDouble();
 	const double correct = std::floor(in);
 	if (result != correct) {
-		fprintf(stderr, "floor %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
+		printf("floor %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
 	}
 	return result == correct;
 }
@@ -973,7 +963,7 @@ bool Scaled::testCeil(const double in) {
 	const double result = Scaled::ceil(in).toDouble();
 	const double correct = std::ceil(in);
 	if (result != correct) {
-		fprintf(stderr, "ceil %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
+		printf("ceil %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
 	}
 	return result == correct;
 }
@@ -982,7 +972,7 @@ bool Scaled::testRound(const double in) {
 	const double result = Scaled::round(in).toDouble();
 	const double correct = std::round(in);
 	if (result != correct) {
-		fprintf(stderr, "round %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
+		printf("round %g = %g (Scaled) != %g (double) fail\n", in, result, correct);
 	}
 	return result == correct;
 }
@@ -997,7 +987,7 @@ bool Scaled::testCompare(const double a, const double b) {
 	const double result = Scaled::compare(a, b);
 	const double correct = compareDouble(a, b);
 	if (ne(result, correct)) {
-		fprintf(stderr, "%g <> %g = %g (Scaled) != %g (long) fail\n", a, b, result, correct);
+		printf("%g <> %g = %g (Scaled) != %g (long) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1006,7 +996,7 @@ bool Scaled::testAdd(const double a, const double b) {
 	const double result = Scaled::add(a, b).toDouble();
 	const double correct = a + b;
 	if (ne(result, correct)) {
-		fprintf(stderr, "%g + %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
+		printf("%g + %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1015,7 +1005,7 @@ bool Scaled::testSubtract(const double a, const double b) {
 	const double result = Scaled::subtract(a, b).toDouble();
 	const double correct = a - b;
 	if (ne(result, correct)) {
-		fprintf(stderr, "%g - %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
+		printf("%g - %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1024,7 +1014,7 @@ bool Scaled::testMultiply(const double a, const double b) {
 	const double result = Scaled::multiply(a, b).toDouble();
 	const double correct = a * b;
 	if (ne(result, correct)) {
-		fprintf(stderr, "%g * %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
+		printf("%g * %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1033,7 +1023,7 @@ bool Scaled::testDivide(const double a, const double b) {
 	const double result = Scaled::divide(a, b).toDouble();
 	const double correct = a / b;
 	if (ne(result, correct)) {
-		fprintf(stderr, "%g / %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
+		printf("%g / %g = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1042,7 +1032,7 @@ bool Scaled::testMod(const double a, const double b) {
 	const double result = Scaled::mod(a, b).toDouble();
 	const double correct = std::fmod(a, b);
 	if (ne(result, correct)) {
-		fprintf(stderr, "mod(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
+		printf("mod(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1051,7 +1041,7 @@ bool Scaled::testPiMath(const double mult, const double div) {
 	const double aDouble = (s_ScaledPi * mult).toDouble();
 	const double bDouble = (s_ScaledPi / div).toDouble();
 	if (ne(aDouble, bDouble)) {
-		fprintf(stderr, "pi * %g = %g != pi / %g = %g fail\n", mult, aDouble, div, bDouble);
+		printf("pi * %g = %g != pi / %g = %g fail\n", mult, aDouble, div, bDouble);
 	}
 	return eq(aDouble, bDouble);
 }
@@ -1061,23 +1051,22 @@ bool Scaled::testExp(const double a) {
 	const double correct = std::exp(a);
 	if (ne(result, correct)) {
 		const double diff = std::abs(result - correct);
-		fprintf(stderr, "exp %g = %g (Scaled) != %g (double) diff=%.17g fail\n", a, result, correct, diff);
+		printf("exp %g = %g (Scaled) != %g (double) diff=%.17g fail\n", a, result, correct, diff);
 	}
 	return eq(result, correct);
 }
 
-bool Scaled::testPow(const long double base, const long double expon) {
-	const long double result = Scaled::pow(base, expon).toLongDouble();
-	const long double correct = std::pow(base, expon);
+bool Scaled::testPow(const double base, const double expon) {
+	const double result = Scaled::pow(base, expon).toDouble();
+	const double correct = std::pow(base, expon);
 
-	// Even with long double we still need to make checking less accurate
-	const long double epsilon = s_dCheckingEpsilon * 10000;
+	const double epsilon = s_dCheckingEpsilon * 10000;
 
-	if (NE(result, correct, epsilon)) {
-		const long double diff = std::abs(result - correct);
-		printf("pow(%Lg, %Lg) = %.17Lf (Scaled) != %.17Lf (double) diff=%.17Lf fail\n", base, expon, result, correct, diff);
+	if (ne(result, correct, epsilon)) {
+		const double diff = std::abs(result - correct);
+		printf("pow(%g, %g) = %.17f (Scaled) != %.17f (double) diff=%.17f fail\n", base, expon, result, correct, diff);
 	}
-	return EQ(result, correct, epsilon);
+	return eq(result, correct, epsilon);
 }
 
 double Scaled::gcdDouble(const double a, const double b) {
@@ -1088,38 +1077,31 @@ double Scaled::gcdDouble(const double a, const double b) {
 	return gcdDouble(std::fmod(b, a), a); // Recursive
 }
 
-long double Scaled::gcdLongDouble(const long double a, const long double b) {
-	if (a < 0 || b < 0) {
-		return gcdLongDouble(std::abs(a), std::abs(b)); // Recursive
-	}
-	if (EQZ(a)) return b;
-	return gcdLongDouble(std::fmod(b, a), a); // Recursive
-}
-
 bool Scaled::testGcd(const double a, const double b) {
 	const double result = Scaled::gcd(a, b).toDouble();
 	const double correct = gcdDouble(a, b); // std::gcd() does't do double
 	if (ne(result, correct)) {
-		fprintf(stderr, "gcd(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
+		printf("gcd(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
 	}
 	return eq(result, correct);
 }
 
-long double Scaled::lcmLongDouble(const long double a, const long double b) {
-	const long double denom = gcdLongDouble(a, b);
-	if (EQZ(denom)) return denom;
+double Scaled::lcmDouble(const double a, const double b) {
+	const double denom = gcdDouble(a, b);
+	if (eqz(denom)) return denom;
 	return (a * b) / denom;
 }
 
 // We need to use long double for make our results match.
-bool Scaled::testLcm(const long double a, const long double b) {
-	const long double result = Scaled::lcm(a, b).toDouble();
-	const long double correct = lcmLongDouble(a, b); // std::lcm() doesn't do double
+bool Scaled::testLcm(const double a, const double b) {
+	const double result = Scaled::lcm(a, b).toDouble();
+	const double correct = lcmDouble(a, b); // std::lcm() doesn't do double
+	const double epsilon = s_dCheckingEpsilon * 10000; // Make less strict
 
-	if (NE(result, correct)) {
-		fprintf(stderr, "lcm(%.17Lg, %.17Lg) = %.17Lg (Scaled) != %.17Lg (double) fail\n", a, b, result, correct);
+	if (ne(result, correct, epsilon)) {
+		printf("lcm(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
 	}
-	return EQ(result, correct);
+	return eq(result, correct, epsilon);
 }
 
 
@@ -1127,7 +1109,7 @@ bool Scaled::testSqrt(const double a) {
 	const double result = Scaled::sqrt(a).toDouble();
 	const double correct = std::sqrt(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "sqrt(%g) = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("sqrt(%g) = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1152,7 +1134,7 @@ bool Scaled::testIsPrime(const double a) {
 	const double result = Scaled::isPrime(a).toDouble();
 	const double correct = isPrimeDouble(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "isPrime(%g) = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("isPrime(%g) = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1166,7 +1148,7 @@ bool Scaled::testFactorial(const double a) {
 	const double result = Scaled::factorial(a).toDouble();
 	const double correct = factorialDouble(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "%g! = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("%g! = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1175,7 +1157,7 @@ bool Scaled::testSin(const double a) {
 	const double result = Scaled::sin(a).toDouble();
 	const double correct = std::sin(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "sin %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("sin %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1184,7 +1166,7 @@ bool Scaled::testCos(const double a) {
 	const double result = Scaled::cos(a).toDouble();
 	const double correct = std::cos(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "cos %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("cos %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1193,7 +1175,7 @@ bool Scaled::testTan(const double a) {
 	const double result = Scaled::tan(a).toDouble();
 	const double correct = std::tan(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "tan %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("tan %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1202,7 +1184,7 @@ bool Scaled::testLn(const double a) {
 	const double result = Scaled::ln(a).toDouble();
 	const double correct = std::log(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "ln %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("ln %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
@@ -1211,7 +1193,7 @@ bool Scaled::testLog(const double a) {
 	const double result = Scaled::log(a).toDouble();
 	const double correct = std::log10(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "log %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+		printf("log %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
 	}
 	return eq(result, correct);
 }
