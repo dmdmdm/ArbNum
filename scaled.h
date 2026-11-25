@@ -146,9 +146,11 @@ public:
 	static bool testMod(const double, const double);
 	static bool testPiMath(const double mult, const double div);
 	static double gcdDouble(const double, const double);
+	static long double gcdLongDouble(const long double, const long double);
 	static bool testGcd(const double, const double);
 	static double lcmDouble(const double, const double);
-	static bool testLcm(const double, const double);
+	static long double lcmLongDouble(const long double, const long double);
+	static bool testLcm(const long double, const long double);
 	static bool testSqrt(const double);
 	static double isPrimeDouble(const double);
 	static bool testIsPrime(const double);

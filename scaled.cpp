@@ -1079,6 +1079,14 @@ double Scaled::gcdDouble(const double a, const double b) {
 	return gcdDouble(std::fmod(b, a), a); // Recursive
 }
 
+long double Scaled::gcdLongDouble(const long double a, const long double b) {
+	if (a < 0 || b < 0) {
+		return gcdLongDouble(std::abs(a), std::abs(b)); // Recursive
+	}
+	if (EQZ(a)) return b;
+	return gcdLongDouble(std::fmod(b, a), a); // Recursive
+}
+
 bool Scaled::testGcd(const double a, const double b) {
 	const double result = Scaled::gcd(a, b).toDouble();
 	const double correct = gcdDouble(a, b); // std::gcd() does't do double
@@ -1094,16 +1102,21 @@ double Scaled::lcmDouble(const double a, const double b) {
 	return (a * b) / denom;
 }
 
-// We need to use long double for make our results match.
-bool Scaled::testLcm(const double a, const double b) {
-	const double result = Scaled::lcm(a, b).toDouble();
-	const double correct = lcmDouble(a, b); // std::lcm() doesn't do double
-	const double epsilon = s_dCheckingEpsilon * 10000; // Make less strict
+long double Scaled::lcmLongDouble(const long double a, const long double b) {
+	const long double denom = gcdLongDouble(a, b);
+	if (EQZ(denom)) return denom;
+	return (a * b) / denom;
+}
 
-	if (ne(result, correct, epsilon)) {
-		printf("lcm(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
+// We need to use long double for make our results match.
+bool Scaled::testLcm(const long double a, const long double b) {
+	const long double result = Scaled::lcm(a, b).toLongDouble();
+	const long double correct = lcmLongDouble(a, b); // std::lcm() doesn't do double
+
+	if (NE(result, correct)) {
+		printf("lcm(%Lg, %Lg) = %.17Lg (Scaled) != %.17Lg (double) fail\n", a, b, result, correct);
 	}
-	return eq(result, correct, epsilon);
+	return EQ(result, correct);
 }
 
 
