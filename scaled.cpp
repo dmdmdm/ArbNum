@@ -177,10 +177,10 @@ Scaled::Scaled(const double in) {
 
 Scaled::Scaled(const long double in) {
 #if __cplusplus >= 202002L
-	saveNumber(std::format("{:.34g}", in).c_str());
+	saveNumber(std::format("{:.34Lg}", in).c_str());
 #else
 	char buf[ARBNUM_BUF_SIZE];
-	snprintf(buf, sizeof(buf), "%.34g", in);
+	snprintf(buf, sizeof(buf), "%.34Lg", in);
 	saveNumber(buf);
 #endif
 }
