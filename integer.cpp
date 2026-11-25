@@ -22,6 +22,8 @@ INLINE const Integer s_IntegerIntMin(INT_MIN);
 INLINE const Integer s_IntegerIntMax(INT_MAX);
 INLINE const Integer s_IntegerLongMin(LONG_MIN);
 INLINE const Integer s_IntegerLongMax(LONG_MAX);
+INLINE const Integer s_IntegerLongLongMin(LONG_LONG_MIN);
+INLINE const Integer s_IntegerLongLongMax(LONG_LONG_MAX);
 
 void Integer::set(const Integer &in) {
 	mSpecial = in.mSpecial;
@@ -387,8 +389,7 @@ int Integer::toInt() const {
 		return -1;
 	}
 
-	// This seems inefficient but check edge cases before changing to mSign * mUnsigned.toInt() or something
-	return atoi(toString().c_str());
+	return mSign * mUnsigned.toInt();
 }
 
 long Integer::toLong() const {
@@ -404,21 +405,41 @@ long Integer::toLong() const {
 		return -1;
 	}
 
-	// This seems inefficient but check edge cases before changing to mSign * mUnsigned.toLong() or something
-	return atol(toString().c_str());
+	// The formula below doesn't work in this case
+	if (*this == s_IntegerLongMin || *this == s_IntegerLongMax) {
+		return atol(toString().c_str());
+	}
+
+	return (long)mSign * mUnsigned.toLong();
 }
 
 long long Integer::toLongLong() const {
-	// This seems inefficient but check edge cases before changing to mSign * mUnsigned.toLongLong() or something
-	return atol(toString().c_str());
+	if (isZero()) return 0;
+
+	if (*this < s_IntegerLongLongMin) {
+		ArbNum_log("Too small for a long long: %s\n", toString().c_str());
+		return -1;
+	}
+
+	if (*this > s_IntegerLongLongMax) {
+		ArbNum_log("Too large for a long long: %s\n", toString().c_str());
+		return -1;
+	}
+
+	// The formula below doesn't work in this case
+	if (*this == s_IntegerLongLongMin || *this == s_IntegerLongLongMax) {
+		return atoll(toString().c_str());
+	}
+
+	return (long long)mSign * mUnsigned.toLongLong();
 }
 
 double Integer::toDouble() const {
-	return (double)atof(toString().c_str());
+	return atof(toString().c_str());
 }
 
 long double Integer::toLongDouble() const {
-	return (long double)strtold(toString().c_str(), nullptr);
+	return strtold(toString().c_str(), nullptr);
 }
 
 void Integer::operator++(int) {
@@ -436,7 +457,7 @@ bool Integer::testStoreStr(const char *in, const int iCorrect) {
 	const Integer myint(in);
 	const int iResult = myint.toInt();
 	if (iResult != iCorrect) {
-		fprintf(stderr, "Store Str %d = %d (Integer) != %d (int) fail\n", iCorrect, iResult, iCorrect);
+		printf("Store Str %d = %d (Integer) != %d (int) fail\n", iCorrect, iResult, iCorrect);
 	}
 	return iResult == iCorrect;
 }
@@ -445,7 +466,7 @@ bool Integer::testStoreInt(const int iCorrect) {
 	const Integer myint(iCorrect);
 	const int iResult = myint.toInt();
 	if (iResult != iCorrect) {
-		fprintf(stderr, "Store Int %d = %d (Integer) != %d (int) fail\n", iCorrect, iResult, iCorrect);
+		printf("Store Int %d = %d (Integer) != %d (int) fail\n", iCorrect, iResult, iCorrect);
 	}
 	return iResult == iCorrect;
 }
@@ -454,7 +475,7 @@ bool Integer::testStoreLong(const long lCorrect) {
 	const Integer myint(lCorrect);
 	const long lResult = myint.toLong();
 	if (lResult != lCorrect) {
-		fprintf(stderr, "Store Long %ld = %ld (Integer) != %ld (long) fail\n", lCorrect, lResult, lCorrect);
+		printf("Store Long %ld = %ld (Integer) != %ld (long) fail\n", lCorrect, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -463,7 +484,7 @@ bool Integer::testStoreLongLong(const long long lCorrect) {
 	const Integer myint(lCorrect);
 	const long long lResult = myint.toLongLong();
 	if (lResult != lCorrect) {
-		fprintf(stderr, "Store Long Long %lld = %lld (Integer) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
+		printf("Store Long Long %lld = %lld (Integer) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -478,7 +499,7 @@ bool Integer::testCompare(const long a, const long b) {
 	const int lResult = Integer::compare(a, b);
 	const int lCorrect = compareLong(a, b);
 	if (lResult != lCorrect) {
-		fprintf(stderr, "%ld <> %ld = %d (Integer) != %d (long) fail\n", a, b, lResult, lCorrect);
+		printf("%ld <> %ld = %d (Integer) != %d (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -487,7 +508,7 @@ bool Integer::testAdd(const long a, const long b) {
 	const long lResult = Integer::add(a, b).toLong();
 	const long lCorrect = a + b;
 	if (lResult != lCorrect) {
-		fprintf(stderr, "%ld + %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("%ld + %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -496,7 +517,7 @@ bool Integer::testSubtract(const long a, const long b) {
 	const long lResult = Integer::subtract(a, b).toLong();
 	const long lCorrect = a - b;
 	if (lResult != lCorrect) {
-		fprintf(stderr, "%ld - %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("%ld - %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -505,7 +526,7 @@ bool Integer::testMultiply(const long a, const long b) {
 	const long lResult = Integer::multiply(a, b).toLong();
 	const long lCorrect = a * b;
 	if (lResult != lCorrect) {
-		fprintf(stderr, "%ld * %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("%ld * %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -514,7 +535,7 @@ bool Integer::testDivide(const long a, const long b) {
 	const long lResult = Integer::divide(a, b).toLong();
 	const long lCorrect = a / b;
 	if (lResult != lCorrect) {
-		fprintf(stderr, "%ld / %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("%ld / %ld = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -523,7 +544,7 @@ bool Integer::testMod(const long a, const long b) {
 	const long lResult = Integer::mod(a, b).toLong();
 	const long lCorrect = a % b;
 	if (lResult != lCorrect) {
-		fprintf(stderr, "mod(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("mod(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -532,7 +553,7 @@ bool Integer::testPow(const long a, const long b) {
 	const long lResult = Integer::pow(a, b).toLong();
 	const long lCorrect = powLong(a, b);
 	if (lResult != lCorrect) {
-		fprintf(stderr, "pow(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("pow(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -554,7 +575,7 @@ bool Integer::testGcd(const long a, const long b) {
 #endif
 
 	if (lResult != lCorrect) {
-		fprintf(stderr, "gcd(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("gcd(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -581,7 +602,7 @@ bool Integer::testLcm(const long a, const long b) {
 	}
 
 	if (lResult != lCorrect) {
-		fprintf(stderr, "lcm(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
+		printf("lcm(%ld, %ld) = %ld (Integer) != %ld (long) fail\n", a, b, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -590,7 +611,7 @@ bool Integer::testSqrt(const long a) {
 	const long lResult = Integer::sqrt(a).toLong();
 	const long lCorrect = sqrtLong(a);
 	if (lResult != lCorrect) {
-		fprintf(stderr, "sqrt(%ld) = %ld (Integer) != %ld (long) fail\n", a, lResult, lCorrect);
+		printf("sqrt(%ld) = %ld (Integer) != %ld (long) fail\n", a, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -615,7 +636,7 @@ bool Integer::testIsPrime(const long a) {
 	const long lResult = Integer::isPrime(a).toLong();
 	const long lCorrect = isPrimeLong(a);
 	if (lResult != lCorrect) {
-		fprintf(stderr, "isPrime(%ld) = %ld (Integer) != %ld (long) fail\n", a, lResult, lCorrect);
+		printf("isPrime(%ld) = %ld (Integer) != %ld (long) fail\n", a, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -629,7 +650,7 @@ bool Integer::testFactorial(const long a) {
 	const long lResult = Integer::factorial(a).toLong();
 	const long lCorrect = factorialLong(a);
 	if (lResult != lCorrect) {
-		fprintf(stderr, "%ld! = %ld (Integer) != %ld (long) fail\n", a, lResult, lCorrect);
+		printf("%ld! = %ld (Integer) != %ld (long) fail\n", a, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
