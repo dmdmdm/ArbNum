@@ -33,7 +33,6 @@ void Scaled_setSimplify(const Scaled_Simplify s) {
 // Scaled
 
 INLINE const Integer s_IntegerTen = 10;
-INLINE Scaled s_ScaledError; // initialized below
 INLINE const Scaled s_ScaledZero = 0;
 INLINE const Scaled s_ScaledPointFive = ".5";
 INLINE const Scaled s_ScaledOne = 1;
@@ -47,21 +46,17 @@ INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2; // -2π
 INLINE const Scaled s_ScaledLn2 = "0.69314718055994530941723212145818"; // ln(2)
 INLINE const Scaled s_ScaledLn10 = "2.3025850929940456840179914546844"; // ln(10)
 
+static Scaled quickError() {
+	Scaled out;
+	out.mkError();
+	return out;
+}
+
 // Precision and epsilon
 
-INLINE Scaled s_ScaledEpsilon; // ε
-INLINE long s_lDividePrecision; // initialized below
-INLINE double s_dCheckingEpsilon; // initialized below
-
-// This purpose of this is to init the above file-scoped statics (aka globals)
-struct ScaledInit {
-	ScaledInit() {
-		s_ScaledError.mkError();
-		Scaled::setPrecisionGlobal(7); // Set first since needed by divide()
-	}
-};
-
-static ScaledInit scaledinit;
+INLINE Scaled s_ScaledEpsilon("1e-7");
+INLINE long s_lDividePrecision = 7 * 3;
+INLINE double s_dCheckingEpsilon = 1e-6;
 
 void Scaled::clear() {
 	mSpecial = SPEC_NORMAL;
@@ -424,7 +419,7 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 	// Handle division by zero
 	if (divisorIn.isZero()) {
 		ArbNum_log("Division by zero.  dividend=%s\n", dividendIn.toString().c_str());
-		return s_ScaledError;
+		return quickError();
 	}
 
 	// Determine the sign of the result
@@ -469,7 +464,7 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 Scaled Scaled::mod(const Scaled &a, const Scaled &b) {
 	if (b.isZero()) {
 		ArbNum_log("mod: Cannot divide by zero\n");
-		return s_ScaledError;
+		return quickError();
 	}
 
 	return a - b * Scaled::trunc(a / b);
@@ -553,7 +548,7 @@ Scaled Scaled::factorial(const Scaled &n) {
 Scaled Scaled::sqrt(const Scaled &a) {
 	if (a.isNegative()) {
 		ArbNum_log("Attempt to take the square root of a negative number\n");
-		return s_ScaledError;
+		return quickError();
 	}
 	if (a.isOne()) return a;
 
@@ -724,7 +719,7 @@ Scaled Scaled::powInt(const Scaled &base, const Scaled &expon) {
 	if (!(expon.isInteger() && expon.isPositive())) {
 		ArbNum_log("powInt: expon must be a postive integer\n");
 		// We could call Scaled::pow() here but would be too circular (it calls us)
-		return s_ScaledError;
+		return quickError();
 	}
 
 	const Scaled x = Scaled::powInt(base, halfInt(expon)); // Recursive
@@ -758,25 +753,25 @@ Scaled Scaled::pow(const Scaled &base, const Scaled &expon) {
             return s_ScaledOne;
 		}
 		ArbNum_log("pow: 0 raised to a negative power\n");
-		return s_ScaledError;
+		return quickError();
 	}
 	else if (base.isPositive()) {
         return Scaled::exp(expon * Scaled::ln(base));
 	}
 	else if (base.isNegative()) {
 		ArbNum_log("pow: negative base is not yet supported\n");
-		return s_ScaledError;
+		return quickError();
 	}
 
 	ArbNum_log("pow: unexpected flow\n");
-	return s_ScaledError;
+	return quickError();
 }
 
 // Taylor (Maclaurin) series
 Scaled Scaled::ln(const Scaled &x) {
 	if (x.isNegativeOrZero()) {
 		ArbNum_log("ln() is only defined for positive numbers.  x=%s\n", x.toString().c_str());
-		return s_ScaledError;
+		return quickError();
 	}
 
 	// 
@@ -830,7 +825,7 @@ Scaled Scaled::ln(const Scaled &x) {
 Scaled Scaled::log(const Scaled &x) {
     if (x.isNegativeOrZero()) {
 		ArbNum_log("log() is only defined for positive numbers.  x=%s\n", x.toString().c_str());
-		return s_ScaledError;
+		return quickError();
 	}
 
     return Scaled::ln(x) / s_ScaledLn10;
