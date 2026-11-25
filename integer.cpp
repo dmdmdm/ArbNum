@@ -417,14 +417,16 @@ double Integer::toDouble() const {
 	return (double)atof(toString().c_str());
 }
 
-Integer Integer::operator++(int) {
-	add(s_IntegerOne);
-	return *this;
+long double Integer::toLongDouble() const {
+	return (long double)strtold(toString().c_str(), nullptr);
 }
 
-Integer Integer::operator--(int) {
+void Integer::operator++(int) {
+	add(s_IntegerOne);
+}
+
+void Integer::operator--(int) {
 	subtract(s_IntegerOne);
-	return *this;
 }
 
 //------------------------------------------------------------------------------

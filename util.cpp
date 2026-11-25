@@ -15,7 +15,7 @@
 #include <stddef.h>	// For NULL
 
 #ifndef _MSC_VER
-#include <sys/time.h>	// For gettimeofday()
+#include <sys/time.h> // For gettimeofday()
 #include <unistd.h>	// For gethostname()
 #endif
 
@@ -39,7 +39,8 @@ void ArbNum_log(const char *format, ...) {
 	va_list		ap;
 
 	va_start(ap, format);
-	vfprintf(stderr, format, ap);
+	// We used to use stderr.  But then it didn't mix nicely with stdout.  So now just use stdout here.
+	vfprintf(stdout, format, ap);
 	va_end(ap);
 }
 
@@ -148,16 +149,14 @@ long currentMillis() {
 }
 
 double getDurationSeconds(const long startMs) {
-	const long durationMs = currentMillis() - startMs;
-	const double durationSeconds = (double)durationMs / 1000.0;
-	return durationSeconds;
+	return (double)(currentMillis() - startMs) / 1000.0;
 }
 
 void printTestResults(const char *testName, const int nSuccess, const int nFail, const long startMs) {
 #ifdef _MSC_VER
-	const char *icon = (nFail == 0) ? "!" : "X";
+	const char *icon = (nFail == 0) ? "Y" : "X";
 #else
-	// Icon is check mark or ballot X
+	// icon is check mark or ballot X
 	const char *icon = (nFail == 0) ? "\u2713" : "\u2717";
 #endif
 	printf("%s  %s  Success: %d  Fail: %d  Took: %.1f seconds\n", icon, testName, nSuccess, nFail, getDurationSeconds(startMs));
@@ -167,17 +166,16 @@ void printTestResults(const char *testName, const int nSuccess, const int nFail,
 // Math
 
 long powLong(const long base, const long exp) {
-	if (exp < 0) {
-		ArbNum_log("powLong: negative exponents are not supported\n");
-		return -1;
-	}
+	if (exp == 0) return 1;
 
-	// Non-recursive so can handle really big numbers
-	long out = 1;
-	for (long i = 0; i < exp; i++) {
-		out *= base;
+	const long x = powLong(base, exp / 2); // Recursive
+
+	if (!(exp % 2)) { // if even
+		return x * x;
 	}
-	return out;
+	else {
+		return base * x * x;
+	}
 }
 
 long sqrtLong(const long a) {
@@ -205,7 +203,8 @@ bool utilTest() {
 	}
 
 	// Regular numbers
-	printf("Regular numbers\n");
+	const long nValues = 10 * maxExp;
+	printf("Testing pow with %ld values\n", nValues);
 	for (long a = 0; a < 10; a++) {
 		for (long b = maxExp; b >= 0; b--) {
 			if (testPow(a, b)) {
@@ -218,7 +217,7 @@ bool utilTest() {
 	}
 
 	// Powers of 10
-	printf("Powers of 10\n");
+	printf("Testing pow(10) with %ld values\n", maxExp);
 	for (long exp = 0; exp < maxExp; exp++) {
 		if (testPow(10, exp)) {
 			nSuccess++;

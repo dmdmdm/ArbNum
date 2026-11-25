@@ -100,16 +100,18 @@ public:
 	long toLong() const; // Loses precision
 	long long toLongLong() const; // Loses precision
 	double toDouble() const; // Loses precision
+	long double toLongDouble() const; // Loses precision
 	Unsigned toUnsigned() const { return mUnsigned; } // Loses sign
 
-	Integer operator+=(const Integer &other) { add(other); return *this; }
-	Integer operator-=(const Integer &other) { subtract(other); return *this; }
-	Integer operator*=(const Integer &other) { multiply(other); return *this; }
-	Integer operator/=(const Integer &other) { divide(other); return *this; }
-	Integer operator%=(const Integer &other) { mod(other); return *this; }
-	Integer operator^=(const Integer &other) { pow(other); return *this; }
-	Integer operator++(int);
-	Integer operator--(int);
+	// These don't return Integer& for speed and that's rarely needed
+	void operator+=(const Integer &other) { add(other); }
+	void operator-=(const Integer &other) { subtract(other); }
+	void operator*=(const Integer &other) { multiply(other); }
+	void operator/=(const Integer &other) { divide(other); }
+	void operator%=(const Integer &other) { mod(other); }
+	void operator^=(const Integer &other) { pow(other); }
+	void operator++(int);
+	void operator--(int);
 
 	static bool testStoreStr(const char *, const int);
 	static bool testStoreInt(const int);

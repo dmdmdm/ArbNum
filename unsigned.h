@@ -101,14 +101,16 @@ public:
 	Unsigned(const bool);
 
 	int &operator[](const long i) { return mDigits[(size_t)i]; }
-	Unsigned operator+=(const Unsigned &other) { add(other); return *this; }
-	Unsigned operator-=(const Unsigned &other) { subtract(other); return *this; }
-	Unsigned operator*=(const Unsigned &other) { multiply(other); return *this; }
-	Unsigned operator/=(const Unsigned &other) { divide(other); return *this; }
-	Unsigned operator%=(const Unsigned &other) { mod(other); return *this; }
-	Unsigned operator^=(const Unsigned &other) { pow(other); return *this; }
-	Unsigned operator++(int);
-	Unsigned operator--(int);
+
+	// These don't return Unsigned& for speed and its rarely needed
+	void operator+=(const Unsigned &other) { add(other); }
+	void operator-=(const Unsigned &other) { subtract(other); }
+	void operator*=(const Unsigned &other) { multiply(other); }
+	void operator/=(const Unsigned &other) { divide(other); }
+	void operator%=(const Unsigned &other) { mod(other); }
+	void operator^=(const Unsigned &other) { pow(other); }
+	void operator++(int);
+	void operator--(int);
 
 	static bool testStoreStr(const char *, const unsigned int);
 	static bool testStoreUnsigned(const unsigned int);

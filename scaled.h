@@ -20,6 +20,8 @@ class Scaled {
 	void shiftLeft(const long numberOfDigits) { mUnscaled.shiftLeft(numberOfDigits); }
 
 public:
+	//static void globalInit();  // Call this before doing anything with this class
+	//static void globalInitIfNecessary();
 	void saveNumber(const char *);
 	void copySign(const Scaled &);
 	void mkNegative() { mUnscaled.mkNegative(); }
@@ -33,6 +35,7 @@ public:
 	Scaled(const Integer &);
 	Scaled(const char *a) { saveNumber(a); }
 	Scaled(const double);
+	Scaled(const long double);
 	Scaled(const int);
 	Scaled(const long);
 	Scaled(const long long);
@@ -46,10 +49,11 @@ public:
 	bool isNormal() const { return mSpecial == SPEC_NORMAL; }
 
 	// Methods
-	bool isZero() const;
+	bool isZero() const; // Maybe you want isCloseToZero() ?
 	bool isOne() const;
 	bool isCloseToZero() const;
 	bool isNegative() const;
+	bool isNegativeOrZero() const;
 	bool isPositive() const; // Greater than zero
 	bool isInteger() const;
 	bool isOdd() const;
@@ -61,6 +65,7 @@ public:
 
 	std::string toString() const;
 	double toDouble() const; // Loses precision
+	long double toLongDouble() const; // Loses precision
 	Integer toInteger() const; // Loses decimal part
 	inline Unsigned toUnsigned() const { return toInteger().toUnsigned(); } // Loses sign and decimal part 
 	inline int toInt() const { return toInteger().toInt(); }  // Loses precision and decimal part
@@ -91,7 +96,6 @@ public:
 	static Scaled floor(const Scaled &);
 	static Scaled ceil(const Scaled &);
 	static Scaled round(const Scaled &);
-	static Scaled pow(const Scaled &, const Scaled &);
 	static Scaled gcd(const Scaled &, const Scaled &);
 	static Scaled lcm(const Scaled &, const Scaled &);
 	static Scaled factorial(const Scaled &);
@@ -101,6 +105,12 @@ public:
 	static Scaled sin(const Scaled &);
 	static Scaled cos(const Scaled &);
 	static Scaled tan(const Scaled &);
+	static Scaled expTaylor(const Scaled &); // private
+	static Scaled exp(const Scaled &); // e ^ x
+	static Scaled powInt(const Scaled &, const Scaled &);
+	static Scaled pow(const Scaled &, const Scaled &);
+	static Scaled ln(const Scaled &); // Natural logarithm (base-e)
+	static Scaled log(const Scaled &); // Base-10 logartihm
 
 	void set(const Scaled &);
 	void set(const long unscaled, const long exp);
@@ -111,17 +121,19 @@ public:
 	void mod(const Scaled &);
 	void pow(const Scaled &);
 
-	Scaled operator+=(const Scaled &other) { add(other); return *this; }
-	Scaled operator-=(const Scaled &other) { subtract(other); return *this; }
-	Scaled operator*=(const Scaled &other) { multiply(other); return *this; }
-	Scaled operator/=(const Scaled &other) { divide(other); return *this; }
-	Scaled operator%=(const Scaled &other) { mod(other); return *this; }
-	Scaled operator^=(const Scaled &other) { pow(other); return *this; }
-	Scaled operator++(int);
-	Scaled operator--(int);
+	// These don't return Scaled& for speed and that's rarely needed
+	void operator+=(const Scaled &other) { add(other); }
+	void operator-=(const Scaled &other) { subtract(other); }
+	void operator*=(const Scaled &other) { multiply(other); }
+	void operator/=(const Scaled &other) { divide(other);  }
+	void operator%=(const Scaled &other) { mod(other); }
+	void operator^=(const Scaled &other) { pow(other); }
+	void operator++(int);
+	void operator--(int);
 
 	static bool testStoreStr(const char *, const char *);
 	static bool testStoreDouble(const double);
+	static bool testStoreLongDouble(const long double);
 	static bool testStoreLong(const long);
 	static bool testStoreLongLong(const long long);
 	static bool testFloor(const double);
@@ -134,12 +146,12 @@ public:
 	static bool testMultiply(const double, const double);
 	static bool testDivide(const double, const double);
 	static bool testMod(const double, const double);
-	static bool testPi(const double mult, const double div);
-	static bool testPow(const double, const double);
+	static bool testPiMath(const double mult, const double div);
 	static double gcdDouble(const double, const double);
+	static long double gcdLongDouble(const long double, const long double);
 	static bool testGcd(const double, const double);
-	static double lcmDouble(const double, const double);
-	static bool testLcm(const double, const double);
+	static long double lcmLongDouble(const long double, const long double);
+	static bool testLcm(const long double, const long double);
 	static bool testSqrt(const double);
 	static double isPrimeDouble(const double);
 	static bool testIsPrime(const double);
@@ -148,7 +160,12 @@ public:
 	static bool testSin(const double);
 	static bool testCos(const double);
 	static bool testTan(const double);
+	static bool testExp(const double);
+	static bool testPow(const long double, const long double);
+	static bool testLn(const double);
+	static bool testLog(const double);
 	static void makeTestValues(const long start, const long end, const long inc, std::vector<double> &);
+	static void testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs); // private
 	static bool testAll();
 };
 

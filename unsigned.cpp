@@ -729,14 +729,12 @@ void Unsigned::pow(const Unsigned &other) {
 	set(pow(*this, other));
 }
 
-Unsigned Unsigned::operator++(int) {
+void Unsigned::operator++(int) {
 	add(s_UnsignedOne);
-	return *this;
 }
 
-Unsigned Unsigned::operator--(int) {
+void Unsigned::operator--(int) {
 	subtract(s_UnsignedOne);
-	return *this;
 }
 
 //------------------------------------------------------------------------------

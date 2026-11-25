@@ -33,22 +33,41 @@ void Scaled_setSimplify(const Scaled_Simplify s) {
 // Scaled
 
 INLINE const Integer s_IntegerTen = 10;
+INLINE Scaled s_ScaledError; // initialized below
 INLINE const Scaled s_ScaledZero = 0;
 INLINE const Scaled s_ScaledPointFive = ".5";
 INLINE const Scaled s_ScaledOne = 1;
 INLINE const Scaled s_ScaledTwo = 2;
 INLINE const Scaled s_ScaledFour = 4;
 INLINE const Scaled s_ScaledMinusOne = -1;
-INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795";
-INLINE const Scaled s_ScaledE = "2.718281828459045235360287471352";
-INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2;
-INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2;
+INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795"; // π
+INLINE const Scaled s_ScaledE = "2.718281828459045235360287471352"; // e
+INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2; //  2π
+INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2; // -2π
+INLINE Scaled s_ScaledPiDiv2; // initialized below π/2
+INLINE Scaled s_ScaledPiDiv4; // initialised below π/4
+INLINE const Scaled s_ScaledLn2 = "0.69314718055994530941723212145818"; // ln(2)
+INLINE const Scaled s_ScaledLn10 = "2.3025850929940456840179914546844"; // ln(10)
 
 // Precision and epsilon
 
-INLINE Scaled s_ScaledEpsilon("1e-7");
-INLINE long s_lDividePrecision = 21; // Needs to hardcoded since used right away
-INLINE double s_dCheckingEpsilon = s_ScaledEpsilon.toDouble() * 10;
+INLINE Scaled s_ScaledEpsilon; // ε
+INLINE long s_lDividePrecision; // initialized below
+INLINE double s_dCheckingEpsilon; // initialized below
+
+// This purpose of this is to init the above file-scoped statics (aka globals)
+struct ScaledInit {
+	ScaledInit() {
+		s_ScaledError.mkError();
+		Scaled::setPrecisionGlobal(7); // Set first since needed by divide()
+
+		// These are used by tan().  Of course divide() must be working.
+		s_ScaledPiDiv2 = s_ScaledPi / 2;
+		s_ScaledPiDiv4 = s_ScaledPi / 4;
+	}
+};
+
+static ScaledInit scaledinit;
 
 void Scaled::clear() {
 	mSpecial = SPEC_NORMAL;
@@ -62,10 +81,12 @@ void Scaled::saveNumber(const char *in) {
 		return;
 	}
 
+	/*
 	if (strchr(in, ':')) {
 		fprintf(stderr, "Invalid colon in scaled number: %s\n", in);
 		return;
 	}
+	*/
 
 	// We can have:
 	// 1234 - only digits
@@ -131,7 +152,7 @@ Scaled Scaled::getE() {
 void Scaled::setPrecisionGlobal(const long n) {
 	s_ScaledEpsilon.set(1, n);
 	s_lDividePrecision = n * 3;
-	s_dCheckingEpsilon = s_ScaledEpsilon.toDouble() * 10;
+	s_dCheckingEpsilon = s_ScaledEpsilon.toDouble() * 10; // 1 digit less accurate
 }
 
 long Scaled::getPrecisionGlobal() {
@@ -172,6 +193,16 @@ Scaled::Scaled(const double in) {
 #endif
 }
 
+Scaled::Scaled(const long double in) {
+#if __cplusplus >= 202002L
+	saveNumber(std::format("{:.34g}", in).c_str());
+#else
+	char buf[ARBNUM_BUF_SIZE];
+	snprintf(buf, sizeof(buf), "%.34g", in);
+	saveNumber(buf);
+#endif
+}
+
 Scaled::Scaled(const int i) {
 	mUnscaled = i;
 	mExp = 0;
@@ -201,6 +232,10 @@ bool Scaled::isCloseToZero() const {
 
 bool Scaled::isNegative() const {
 	return mUnscaled.isNegative();
+}
+
+bool Scaled::isNegativeOrZero() const {
+	return mUnscaled.isNegativeOrZero();
 }
 
 bool Scaled::isPositive() const {
@@ -270,6 +305,11 @@ std::string Scaled::toString() const {
 double Scaled::toDouble() const {
 	// We need to use std::pow() here (and not powLong()) because its a negative exponent
 	return mUnscaled.toDouble() * std::pow(10, - mExp);
+}
+
+long double Scaled::toLongDouble() const {
+	// We need to use std::pow() here (and not powLong()) because its a negative exponent
+	return mUnscaled.toLongDouble() * std::pow((long double)10, (long double)- mExp);
 }
 
 Integer Scaled::toInteger() const {
@@ -387,41 +427,40 @@ Scaled Scaled::half(const Scaled &a) {
 Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 	Scaled out;
 
-    // Handle division by zero
-    if (divisorIn.isZero()) {
-        ArbNum_log("Division by zero.  dividend=%s\n", dividendIn.toString().c_str());
-		out.mkError();
-		return out;
+	// Handle division by zero
+	if (divisorIn.isZero()) {
+		ArbNum_log("Division by zero.  dividend=%s\n", dividendIn.toString().c_str());
+		return s_ScaledError;
 	}
 
-    // Determine the sign of the result
+	// Determine the sign of the result
 	bool isNegative = false;
-    if ((dividendIn.isNegative() && divisorIn.isPositive()) || (dividendIn.isPositive() && divisorIn.isNegative())) {
+	if ((dividendIn.isNegative() && divisorIn.isPositive()) || (dividendIn.isPositive() && divisorIn.isNegative())) {
 		isNegative = true;
 	}
 
-    // Make both numbers positive for easier calculation
+	// Make both numbers positive for easier calculation
 	Scaled a1 = Scaled::abs(dividendIn);
 	Scaled b1 = Scaled::abs(divisorIn);
 
-    // Scale both numbers to whole integers by finding decimal places
+	// Scale both numbers to whole integers by finding decimal places
 	convertToZeroExponent(a1, b1);
 
 	const Unsigned a = a1.toUnsigned();
 	const Unsigned b = b1.toUnsigned();
-    
-    // Integer division for the whole number part
+
+	// Integer division for the whole number part
 	const UnsignedDivide div0 = Unsigned::divideWithRem(a, b);
 	std::string outString = div0.quotient.toString() + ".";
 	Unsigned remainder = div0.remainder;
-    
-    // Compute decimal places up to the requested precision
+
+	// Compute decimal places up to the requested precision
 	for (long i = 1; i <= s_lDividePrecision; i++) {
 		remainder.multiplyByTen();
 		const UnsignedDivide div1 = Unsigned::divideWithRem(remainder, b);
 		outString += div1.quotient.firstDigitAsChar();
 		remainder = div1.remainder;
-		if (remainder == 0) break;
+		if (remainder.isZero()) break;
 	}
 
 	out.saveNumber(outString.c_str());
@@ -436,9 +475,7 @@ Scaled Scaled::divide(const Scaled &dividendIn, const Scaled &divisorIn) {
 Scaled Scaled::mod(const Scaled &a, const Scaled &b) {
 	if (b.isZero()) {
 		ArbNum_log("mod: Cannot divide by zero\n");
-		Scaled out;
-		out.mkError();
-		return out;
+		return s_ScaledError;
 	}
 
 	return a - b * Scaled::trunc(a / b);
@@ -460,8 +497,8 @@ Scaled Scaled::floor(const Scaled &x) {
 	Scaled t = Scaled::trunc(x); // Integer part, toward zero
 	const Scaled frac = x - t; // Fractional part, same sign as x 
 
-    if (frac > 0) { /* do nothing */ }
-    else if (frac < 0) { t--; }
+	if (frac > 0) { /* do nothing */ }
+	else if (frac < 0) { t--; }
 
 	return t;
 }
@@ -470,8 +507,8 @@ Scaled Scaled::ceil(const Scaled &x) {
 	Scaled t = Scaled::trunc(x); // Integer part, toward zero
 	const Scaled frac = x - t; // Fractional part, same sign as x 
 
-    if (frac > 0) { t++; }
-    else if (frac < 0) { /* do nothing */ }
+	if (frac > 0) { t++; }
+	else if (frac < 0) { /* do nothing */ }
 
 	return t;
 }
@@ -480,33 +517,10 @@ Scaled Scaled::round(const Scaled &x) {
 	Scaled t = Scaled::trunc(x); // Integer part, toward zero
 	const Scaled frac = x - t; // Fractional part, same sign as x 
 
-    if (frac >= 0.5) { t++; }
-    else if (frac <= -0.5) { t--; }
+	if (frac >= 0.5) { t++; }
+	else if (frac <= -0.5) { t--; }
 
-    return t;
-}
-
-Scaled Scaled::pow(const Scaled &base, const Scaled &exp) {
-	if (base.isZero()) { return s_ScaledZero; }
-	if (base.isOne() || exp.isZero()) { return s_ScaledOne; }
-
-	if (exp.isInteger()) {
-		const Scaled x = pow(base, halfInt(exp)); // Recursive
-
-		if (exp.isEven()) {
-			return x * x;
-		}
-		else {
-			return base * x * x;
-		}
-	}
-	else {
-		// This is tricky
-		ArbNum_log("pow: fractional exponents are not yet supported\n");
-		Scaled out;
-		out.mkError();
-		return out;
-	}
+	return t;
 }
 
 Scaled Scaled::gcd(const Scaled &a, const Scaled &b) {
@@ -545,9 +559,7 @@ Scaled Scaled::factorial(const Scaled &n) {
 Scaled Scaled::sqrt(const Scaled &a) {
 	if (a.isNegative()) {
 		ArbNum_log("Attempt to take the square root of a negative number\n");
-		Scaled out;
-		out.mkError();
-		return out;
+		return s_ScaledError;
 	}
 	if (a.isOne()) return a;
 
@@ -586,15 +598,15 @@ Scaled Scaled::sin(const Scaled &xIn) {
 		x %= s_ScaledPi2;
 	}
 
-	Scaled out, chunk, sign(1), term;
+	Scaled total, chunk, sign(1), term;
 	for (long n = 0;; n++) {
 		chunk = 2 * n + 1;
-		term = pow(x, chunk) / factorial(chunk);
-		out += sign * term;
+		term = powInt(x, chunk) / factorial(chunk);
+		total += sign * term;
 		if (term.isCloseToZero()) break;
 		sign.flipSign();
 	}
-	return out;
+	return total;
 }
 
 // In radians, Tayor series
@@ -604,15 +616,15 @@ Scaled Scaled::cos(const Scaled &xIn) {
 		x %= s_ScaledPi2;
 	}
 
-	Scaled out, chunk, sign(1), term;
+	Scaled total, chunk, sign(1), term;
 	for (long n = 0;; n++) {
 		chunk = 2 * n;
-		term = pow(x, chunk) / factorial(chunk);
-		out += sign * term;
+		term = powInt(x, chunk) / factorial(chunk);
+		total += sign * term;
 		if (term.isCloseToZero()) break;
 		sign.flipSign();
 	}
-	return out;
+	return total;
 }
 
 // In radians.
@@ -620,33 +632,35 @@ Scaled Scaled::cos(const Scaled &xIn) {
 Scaled Scaled::tan(const Scaled &xIn) {
 	Scaled x(xIn);
 
-    // Range reduction to [-pi/2, pi/2]
+	// Range reduction to [-pi/2, pi/2]
 	x -= s_ScaledPi * Scaled::round(x / s_ScaledPi);
 
-    // Handle sign (tan is odd)
-    int sign = 1;
-    if (x.isNegative()) {
-        x.flipSign(); // x = -x
-        sign = -1;
+	// Handle sign (tan is odd)
+	int sign = 1;
+	if (x.isNegative()) {
+		x.flipSign(); // x = -x
+		sign = -1;
 	}
 
+	/*
 	static Scaled PiDiv2, PiDiv4;
 	if (PiDiv2.isZero()) {
 		PiDiv2 = s_ScaledPi / 2;
 		PiDiv4 = s_ScaledPi / 4;
 	}
+	*/
 
-    // Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
-    bool invert = false;
-    if (x > PiDiv4) {
-        x = PiDiv2 - x;
-        invert = true;
+	// Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
+	bool invert = false;
+	if (x > s_ScaledPiDiv4) {
+		x = s_ScaledPiDiv2 - x;
+		invert = true;
 	}
 
 	const Scaled s = sin(x);
 	const Scaled c = cos(x);
 
-    // Combine
+	// Combine
 	Scaled out;
 	if (invert) {
 		out = c / s;
@@ -654,7 +668,180 @@ Scaled Scaled::tan(const Scaled &xIn) {
 	else {
 		out = s / c;
 	}
-    return sign * out;
+	return sign * out;
+}
+
+Scaled Scaled::expTaylor(const Scaled &r) {
+    // Taylor series: exp(r) = 1 + r + r²/2! + ...
+    Scaled sum = 1;
+    Scaled term = 1;
+
+	const Scaled epsilon = s_ScaledEpsilon / 100; // 2 digits more accurate
+	for (long n = 1;; n++) {
+        term *= r / n; // term = term * r / n;
+		sum += term;
+		if (abs(term) < epsilon) break;
+	}
+
+	return sum;
+}
+
+// exp(a) = e ^ a.  Taylor services
+Scaled Scaled::exp(const Scaled &a) {
+	if (a.isError()) return a;
+	if (a.isZero()) { return s_ScaledOne; }
+	if (a.isOne()) { return s_ScaledE; }
+
+    // Choose k so r = a - k*ln(2) is small.
+    Scaled k = round(a / s_ScaledLn2);
+    const Scaled r = a - k * s_ScaledLn2;
+
+	/*
+    // Taylor series: exp(r) = 1 + r + r²/2! + ...
+    Scaled sum = 1;
+    Scaled term = 1;
+
+	const Scaled epsilon = s_ScaledEpsilon / 100; // 2 digits more accurate
+	for (long n = 1;; n++) {
+        term *= r / n; // term = term * r / n;
+		sum += term;
+		if (abs(term) < epsilon) break;
+	}
+	*/
+	Scaled sum = expTaylor(r);
+
+    // Since exp(a) = exp(r) * 2^k, scale by powers of 2.
+    while (k > 0) {
+        sum = sum * 2;
+        k--; // k = k - 1
+	}
+
+    while (k < 0) {
+        sum = half(sum); // sum = sum / 2
+        k++; // k = k + 1
+	}
+
+    return sum;
+}
+
+// The parameters are Scaled which can hold real numbers but this function requires
+// that they are integer.
+Scaled Scaled::powInt(const Scaled &base, const Scaled &expon) {
+	if (base.isZero()) { return s_ScaledZero; }
+	if (base.isOne() || expon.isZero()) { return s_ScaledOne; }
+	if (!(expon.isInteger() && expon.isPositive())) {
+		ArbNum_log("powInt: expon must be a postive integer\n");
+		// We could call Scaled::pow() here but would be too circular (it calls us)
+		return s_ScaledError;
+	}
+
+	const Scaled x = Scaled::powInt(base, halfInt(expon)); // Recursive
+
+	if (expon.isEven()) {
+		return x * x;
+	}
+	else {
+		return base * x * x;
+	}
+}
+
+// Uses powInt(), exp(), ln()
+Scaled Scaled::pow(const Scaled &base, const Scaled &expon) {
+	if (base.isZero()) { return s_ScaledZero; }
+	if (base.isOne() || expon.isZero()) { return s_ScaledOne; }
+
+	if (expon.isInteger() && expon.isPositive()) {
+		return powInt(base, expon);
+	}
+
+	//
+	// Real values (or expon is a negative integer)
+	//
+
+    if (base.isCloseToZero()) {
+        if (expon.isPositive()) {
+            return s_ScaledZero;
+		}
+		else if (expon.isCloseToZero()) {
+            return s_ScaledOne;
+		}
+		ArbNum_log("pow: 0 raised to a negative power\n");
+		return s_ScaledError;
+	}
+	else if (base.isPositive()) {
+        return Scaled::exp(expon * Scaled::ln(base));
+	}
+	else if (base.isNegative()) {
+		ArbNum_log("pow: negative base is not yet supported\n");
+		return s_ScaledError;
+	}
+
+	ArbNum_log("pow: unexpected flow\n");
+	return s_ScaledError;
+}
+
+// Taylor (Maclaurin) series
+Scaled Scaled::ln(const Scaled &x) {
+	if (x.isNegativeOrZero()) {
+		ArbNum_log("ln() is only defined for positive numbers.  x=%s\n", x.toString().c_str());
+		return s_ScaledError;
+	}
+
+	// 
+	// Range reduction
+	//
+
+	Scaled k; // k = 0
+	Scaled m = x;
+
+	while (m >= 2) {
+		m = half(m); // m = m / 2;
+		k++; // k = k + 1;
+	}
+
+	while (m < 1) {
+		m *= 2; // m = m * 2
+		k--; // k = k - 1;
+	}
+
+	// 
+	// Compute
+	//
+
+	const Scaled z = (m - 1) / (m + 1);
+	const Scaled zSquared = z * z;
+	Scaled term = z;
+	Scaled total; // total = 0
+	Scaled denom = 1;
+	Scaled fraction;
+
+	/*
+	while (abs(term / denom) > s_ScaledEpsilon) {
+		total += term / denom; // total = total + term / denom
+		term *= zSquared; // term = term * zSquared;
+		denom += 2; // denom = demon + 2
+	}
+	*/
+
+	for (;;) {
+		fraction = term / denom;
+		total += fraction; // total = total + term / denom
+		// Since we have to calculate fraction to see if we're done - might as well add it then check
+		if (fraction.isCloseToZero()) break;
+		term *= zSquared; // term = term * zSquared;
+		denom += 2; // denom = demon + 2
+	}
+
+	return 2 * total + k * s_ScaledLn2;
+}
+
+Scaled Scaled::log(const Scaled &x) {
+    if (x.isNegativeOrZero()) {
+		ArbNum_log("log() is only defined for positive numbers.  x=%s\n", x.toString().c_str());
+		return s_ScaledError;
+	}
+
+    return Scaled::ln(x) / s_ScaledLn10;
 }
 
 void Scaled::set(const Scaled &other) {
@@ -692,14 +879,12 @@ void Scaled::pow(const Scaled &other) {
 	set(pow(*this, other));
 }
 
-Scaled Scaled::operator++(int) {
+void Scaled::operator++(int) {
 	add(s_ScaledOne);
-	return *this;
 }
 
-Scaled Scaled::operator--(int) {
+void Scaled::operator--(int) {
 	subtract(s_ScaledOne);
-	return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -722,6 +907,23 @@ static bool eqz(const double a, double epsilon = 1) {
 	return eq(a, 0.0, epsilon);
 }
 
+// For comparing long doubles
+static bool EQ(const long double a, const long double b, long double epsilon = 1) {
+	if (epsilon == 1) {
+		epsilon = s_dCheckingEpsilon;
+	}
+
+	return std::abs(a - b) < epsilon;
+}
+
+static bool NE(const long double a, const long double b, long double epsilon = 1) {
+	return ! EQ(a, b, epsilon);
+}
+
+static bool EQZ(const long double a, long double epsilon = 1) {
+	return EQ(a, 0.0, epsilon);
+}
+
 bool Scaled::testStoreStr(const char *in, const char *correct) {
 	const Scaled scaled(correct);
 	const std::string result = scaled.toString();
@@ -738,6 +940,15 @@ bool Scaled::testStoreDouble(const double dCorrect) {
 		fprintf(stderr, "Store Double %g = %g (Scaled) != %g (double) fail\n", dCorrect, dResult, dCorrect);
 	}
 	return eq(dResult, dCorrect);
+}
+
+bool Scaled::testStoreLongDouble(const long double dCorrect) {
+	const Scaled scaled(dCorrect);
+	const long double dResult = scaled.toLongDouble();
+	if (NE(dResult, dCorrect)) {
+		fprintf(stderr, "Store Double %Lg = %Lg (Scaled) != %Lg (double) fail\n", dCorrect, dResult, dCorrect);
+	}
+	return EQ(dResult, dCorrect);
 }
 
 bool Scaled::testStoreLong(const long lCorrect) {
@@ -845,7 +1056,7 @@ bool Scaled::testMod(const double a, const double b) {
 	return eq(result, correct);
 }
 
-bool Scaled::testPi(const double mult, const double div) {
+bool Scaled::testPiMath(const double mult, const double div) {
 	const double aDouble = (s_ScaledPi * mult).toDouble();
 	const double bDouble = (s_ScaledPi / div).toDouble();
 	if (ne(aDouble, bDouble)) {
@@ -854,21 +1065,44 @@ bool Scaled::testPi(const double mult, const double div) {
 	return eq(aDouble, bDouble);
 }
 
-bool Scaled::testPow(const double a, const double b) {
-	const double result = Scaled::pow(a, b).toDouble();
-	const double correct = std::pow(a, b);
+bool Scaled::testExp(const double a) {
+	const double result = Scaled::exp(a).toDouble();
+	const double correct = std::exp(a);
 	if (ne(result, correct)) {
-		fprintf(stderr, "pow(%g, %g) = %g (Scaled) != %g (double) fail\n", a, b, result, correct);
+		const double diff = std::abs(result - correct);
+		fprintf(stderr, "exp %g = %g (Scaled) != %g (double) diff=%.17g fail\n", a, result, correct, diff);
 	}
 	return eq(result, correct);
 }
 
+bool Scaled::testPow(const long double base, const long double expon) {
+	const long double result = Scaled::pow(base, expon).toLongDouble();
+	const long double correct = std::pow(base, expon);
+
+	// Even with long double we still need to make checking less accurate
+	const long double epsilon = s_dCheckingEpsilon * 10000;
+
+	if (NE(result, correct, epsilon)) {
+		const long double diff = std::abs(result - correct);
+		printf("pow(%Lg, %Lg) = %.17Lf (Scaled) != %.17Lf (double) diff=%.17Lf fail\n", base, expon, result, correct, diff);
+	}
+	return EQ(result, correct, epsilon);
+}
+
 double Scaled::gcdDouble(const double a, const double b) {
 	if (a < 0 || b < 0) {
-		return gcdDouble(std::abs(a), std::abs(b));
+		return gcdDouble(std::abs(a), std::abs(b)); // Recursive
 	}
 	if (eqz(a)) return b;
-	return gcdDouble(std::fmod(b, a), a);
+	return gcdDouble(std::fmod(b, a), a); // Recursive
+}
+
+long double Scaled::gcdLongDouble(const long double a, const long double b) {
+	if (a < 0 || b < 0) {
+		return gcdLongDouble(std::abs(a), std::abs(b)); // Recursive
+	}
+	if (EQZ(a)) return b;
+	return gcdLongDouble(std::fmod(b, a), a); // Recursive
 }
 
 bool Scaled::testGcd(const double a, const double b) {
@@ -880,24 +1114,21 @@ bool Scaled::testGcd(const double a, const double b) {
 	return eq(result, correct);
 }
 
-double Scaled::lcmDouble(const double a, const double b) {
-	const double denom = gcdDouble(a, b);
-	if (eqz(denom)) return denom;
+long double Scaled::lcmLongDouble(const long double a, const long double b) {
+	const long double denom = gcdLongDouble(a, b);
+	if (EQZ(denom)) return denom;
 	return (a * b) / denom;
 }
 
-bool Scaled::testLcm(const double a, const double b) {
-	const double result = Scaled::lcm(a, b).toDouble();
-	const double correct = lcmDouble(a, b); // std::lcm() doesn't do double
+// We need to use long double for make our results match.
+bool Scaled::testLcm(const long double a, const long double b) {
+	const long double result = Scaled::lcm(a, b).toDouble();
+	const long double correct = lcmLongDouble(a, b); // std::lcm() doesn't do double
 
-	// If it has a large number of decimal places we have to allow more difference with the double result
-	double epsilon = 1e-6;
-	if (std::to_string(a).length() > 6) epsilon = .1;
-
-	if (ne(result, correct, epsilon)) {
-		fprintf(stderr, "lcm(%.17g, %.17g) = %.17g (Scaled) != %.17g (double) fail\n", a, b, result, correct);
+	if (NE(result, correct)) {
+		fprintf(stderr, "lcm(%.17Lg, %.17Lg) = %.17Lg (Scaled) != %.17Lg (double) fail\n", a, b, result, correct);
 	}
-	return eq(result, correct, epsilon);
+	return EQ(result, correct);
 }
 
 
@@ -976,6 +1207,24 @@ bool Scaled::testTan(const double a) {
 	return eq(result, correct);
 }
 
+bool Scaled::testLn(const double a) {
+	const double result = Scaled::ln(a).toDouble();
+	const double correct = std::log(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "ln %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+	}
+	return eq(result, correct);
+}
+
+bool Scaled::testLog(const double a) {
+	const double result = Scaled::log(a).toDouble();
+	const double correct = std::log10(a);
+	if (ne(result, correct)) {
+		fprintf(stderr, "log %g = %g (Scaled) != %g (double) fail\n", a, result, correct);
+	}
+	return eq(result, correct);
+}
+
 // We iterate using long's and divide by 10 to get a double which we save.
 // This is rather than interating thru double which can get weird values.
 void Scaled::makeTestValues(const long start, const long end, const long inc, std::vector<double> &values) {
@@ -1010,23 +1259,15 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 	}
 }
 
-
-bool Scaled::testAll() {
-	int nSuccess = 0;
-	int nFail = 0;
+void Scaled::testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs) {
 	const bool is_home = isHome();
-	const long precision = getPrecisionGlobal();
-	const std::string testName = "scaledTest scale=" + std::to_string(precision);
 
 	if (precision < 3 || precision > 9) {
 		ArbNum_log("Sorry, scale must be 3 <= scale <= 9 for tests\n");
-		return false;
+		return;
 	}
 
 	printf("Starting %s\n", testName.c_str());
-
-	// Start the timer here to avoid some of that setup stuff
-	const long startMs = currentMillis();
 
 	// Home settings
 	int testLimit = 120; // Seconds
@@ -1065,7 +1306,18 @@ bool Scaled::testAll() {
 		else {
 			nFail++;
 		}
-	} }
+	}
+
+	printf("Testing store long double with %d values\n", nCheckDouble);
+	for (int i = 0; i < nCheckDouble; i++) {
+		if (testStoreLongDouble(checkDouble[i])) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+	}
 
 	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
@@ -1222,14 +1474,14 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	{
 	const double testPiMult[] = { .5, -.5, .25, -.25 };
 	const double testPiDiv[] = { 2, -2, 4, -4 };
 	const int nTestPi = sizeof(testPiMult) / sizeof(testPiMult[0]);
 	printf("Testing pi math with %d values\n", nTestPi);
 	for (int i = 0; i < nTestPi; i++) {
-		if (testPi(testPiMult[i], testPiDiv[i])) {
+		if (testPiMath(testPiMult[i], testPiDiv[i])) {
 			nSuccess++;
 		}
 		else {
@@ -1237,20 +1489,7 @@ bool Scaled::testAll() {
 		}
 	} }		
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	printf("Testing pow with %d values\n", 20 * 9);
-	for (double a = -10; a <= 10; a++) {
-		for (double b = 1; b <= 9; b++) {
-			if (testPow(a, b)) {
-				nSuccess++;
-			}
-			else {
-				nFail++;
-			}
-		}
-	}
-
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing gcd with %ld values\n", nValues);
 	for (double a : a_values) {
 		for (double b : b_values) {
@@ -1263,7 +1502,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing lcm with %ld values\n", nValues);
 	for (double a : a_values) {
 		for (double b : b_values) {
@@ -1276,7 +1515,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing sqrt with %ld values\n", nValues);
 	for (double a = 0; a <= A_END; a += (double)A_INC) {
 		if (testSqrt(a)) {
@@ -1287,7 +1526,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing isPrime with %d values\n", 50 / 3);
 	for (double a = 0; a <= 50; a+= 3) {
 		if (testIsPrime(a)) {
@@ -1298,7 +1537,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing factorial with %d values\n", 13);
 	for (double a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
@@ -1309,8 +1548,8 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
-	printf("Testing sin with %g values\n", (7 + 7) /  trigInc);
+	if (getDurationSeconds(startMs) > testLimit) return;
+	printf("Testing sin with %g values\n", (7 + 7) / trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (testSin(a)) {
 			nSuccess++;
@@ -1320,7 +1559,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing cos with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (testCos(a)) {
@@ -1331,7 +1570,7 @@ bool Scaled::testAll() {
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) goto the_end;
+	if (getDurationSeconds(startMs) > testLimit) return;
 	printf("Testing tan with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (testTan(a)) {
@@ -1342,7 +1581,66 @@ bool Scaled::testAll() {
 		}
 	}
 
-the_end:
+	if (getDurationSeconds(startMs) > testLimit) return;
+	printf("Testing exp with %d values\n", 10 + 10);
+	for (double a = -10; a < 10; a++) {
+		if (testExp(a)) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+
+	if (getDurationSeconds(startMs) > testLimit) return;
+	{
+	const double nPow = (7 + 7) / trigInc;
+	printf("Testing pow with %g values\n", nPow * nPow);
+	for (double a = -7; a < 7; a += trigInc) {
+		for (double b = -7; b < 7; b += trigInc) {
+			if (a < 0) continue; // Negative base not supported yet
+			if (testPow(a, b)) {
+				nSuccess++;
+			}
+			else {
+				nFail++;
+			}
+		}
+	}
+	}
+
+	if (getDurationSeconds(startMs) > testLimit) return;
+	printf("Testing ln with %g values\n", (7 + 7) / trigInc);
+	for (double a = -7; a < 7; a += trigInc) {
+		if (a <= 0) continue; // Not defined
+		if (testLn(a)) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+
+	if (getDurationSeconds(startMs) > testLimit) return;
+	printf("Testing log with %ld values\n", a_values.size());
+	for (double a : a_values) {
+		if (a <= 0) continue; // Not defined
+		if (testLog(a)) {
+			nSuccess++;
+		}
+		else {
+			nFail++;
+		}
+	}
+}
+
+bool Scaled::testAll() {
+	int nSuccess = 0;
+	int nFail = 0;
+	const long precision = getPrecisionGlobal();
+	const std::string testName = "scaledTest scale=" + std::to_string(precision);
+	const long startMs = currentMillis();
+	testAllInner(testName, precision, nSuccess, nFail, startMs);
 	printTestResults(testName.c_str(), nSuccess, nFail, startMs);
 	return nFail == 0;
 }
