@@ -44,8 +44,6 @@ INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795"; // π
 INLINE const Scaled s_ScaledE = "2.718281828459045235360287471352"; // e
 INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2; //  2π
 INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2; // -2π
-INLINE Scaled s_ScaledPiDiv2; // initialized below π/2
-INLINE Scaled s_ScaledPiDiv4; // initialised below π/4
 INLINE const Scaled s_ScaledLn2 = "0.69314718055994530941723212145818"; // ln(2)
 INLINE const Scaled s_ScaledLn10 = "2.3025850929940456840179914546844"; // ln(10)
 
@@ -60,10 +58,6 @@ struct ScaledInit {
 	ScaledInit() {
 		s_ScaledError.mkError();
 		Scaled::setPrecisionGlobal(7); // Set first since needed by divide()
-
-		// These are used by tan().  Of course divide() must be working.
-		s_ScaledPiDiv2 = s_ScaledPi / 2;
-		s_ScaledPiDiv4 = s_ScaledPi / 4;
 	}
 };
 
@@ -642,18 +636,16 @@ Scaled Scaled::tan(const Scaled &xIn) {
 		sign = -1;
 	}
 
-	/*
 	static Scaled PiDiv2, PiDiv4;
 	if (PiDiv2.isZero()) {
 		PiDiv2 = s_ScaledPi / 2;
 		PiDiv4 = s_ScaledPi / 4;
 	}
-	*/
 
 	// Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
 	bool invert = false;
-	if (x > s_ScaledPiDiv4) {
-		x = s_ScaledPiDiv2 - x;
+	if (x > PiDiv4) {
+		x = PiDiv2 - x;
 		invert = true;
 	}
 
