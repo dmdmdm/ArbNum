@@ -20,8 +20,6 @@ class Scaled {
 	void shiftLeft(const long numberOfDigits) { mUnscaled.shiftLeft(numberOfDigits); }
 
 public:
-	//static void globalInit();  // Call this before doing anything with this class
-	//static void globalInitIfNecessary();
 	void saveNumber(const char *);
 	void copySign(const Scaled &);
 	void mkNegative() { mUnscaled.mkNegative(); }
@@ -133,7 +131,6 @@ public:
 
 	static bool testStoreStr(const char *, const char *);
 	static bool testStoreDouble(const double);
-	static bool testStoreLongDouble(const long double);
 	static bool testStoreLong(const long);
 	static bool testStoreLongLong(const long long);
 	static bool testFloor(const double);

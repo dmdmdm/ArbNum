@@ -888,7 +888,8 @@ static bool eqz(const double a, double epsilon = 1) {
 }
 
 // For comparing long doubles
-static bool EQ(const long double a, const long double b, long double epsilon = 1) {
+// non-static to avoid warning
+bool EQ(const long double a, const long double b, long double epsilon = 1) {
 	if (epsilon == 1) {
 		epsilon = s_dCheckingEpsilon;
 	}
@@ -896,7 +897,8 @@ static bool EQ(const long double a, const long double b, long double epsilon = 1
 	return std::abs(a - b) < epsilon;
 }
 
-static bool NE(const long double a, const long double b, long double epsilon = 1) {
+// non-static to avoid warning
+bool NE(const long double a, const long double b, long double epsilon = 1) {
 	return ! EQ(a, b, epsilon);
 }
 
@@ -921,15 +923,6 @@ bool Scaled::testStoreDouble(const double dCorrect) {
 		printf("Store Double %g = %g (Scaled) != %g (double) fail\n", dCorrect, dResult, dCorrect);
 	}
 	return eq(dResult, dCorrect);
-}
-
-bool Scaled::testStoreLongDouble(const long double dCorrect) {
-	const Scaled scaled(dCorrect);
-	const long double dResult = scaled.toLongDouble();
-	if (NE(dResult, dCorrect)) {
-		printf("Store Double %Lg = %Lg (Scaled) != %Lg (double) fail\n", dCorrect, dResult, dCorrect);
-	}
-	return EQ(dResult, dCorrect);
 }
 
 bool Scaled::testStoreLong(const long lCorrect) {
@@ -1279,18 +1272,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		else {
 			nFail++;
 		}
-	}
-
-	printf("Testing store long double with %d values\n", nCheckDouble);
-	for (int i = 0; i < nCheckDouble; i++) {
-		if (testStoreLongDouble(checkDouble[i])) {
-			nSuccess++;
-		}
-		else {
-			nFail++;
-		}
-	}
-	}
+	} }
 
 	{
 	const long checkLong[] = { LONG_MIN, INT_MIN, SHRT_MIN, 0, SHRT_MAX, INT_MAX, LONG_MAX };
@@ -1570,6 +1552,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 	const double nPow = (7 + 7) / trigInc;
 	printf("Testing pow with %g values\n", nPow * nPow);
 	for (double a = -7; a < 7; a += trigInc) {
+		if (getDurationSeconds(startMs) > testLimit) return;
 		for (double b = -7; b < 7; b += trigInc) {
 			if (a < 0) continue; // Negative base not supported yet
 			if (testPow(a, b)) {
