@@ -1582,7 +1582,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 	if (getDurationSeconds(startMs) > testLimit) return;
 	{
 	const double nPow = (7 + 7) / trigInc;
-	printf("Testing pow with %g values\n", nPow * nPow);
+	printf("Testing pow with %ld values\n", MKLONG(nPow * nPow));
 	for (double a = -7; a < 7; a += trigInc) {
 		if (getDurationSeconds(startMs) > testLimit) return;
 		for (double b = -7; b < 7; b += trigInc) {
