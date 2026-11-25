@@ -297,8 +297,12 @@ double Scaled::toDouble() const {
 }
 
 long double Scaled::toLongDouble() const {
+	return toDouble();
+	
+	/* Some platforms don't handle this
 	// We need to use std::pow() here (and not powLong()) because its a negative exponent
 	return mUnscaled.toLongDouble() * std::pow((long double)10, (long double)- mExp);
+	*/
 }
 
 Integer Scaled::toInteger() const {
