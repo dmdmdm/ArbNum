@@ -32,7 +32,6 @@ void Scaled_setSimplify(const Scaled_Simplify s) {
 //------------------------------------------------------------------------------
 // Scaled
 
-INLINE const Integer s_IntegerTen = 10;
 INLINE const Scaled s_ScaledZero = 0;
 INLINE const Scaled s_ScaledPointFive = ".5";
 INLINE const Scaled s_ScaledOne = 1;
@@ -40,23 +39,25 @@ INLINE const Scaled s_ScaledTwo = 2;
 INLINE const Scaled s_ScaledFour = 4;
 INLINE const Scaled s_ScaledMinusOne = -1;
 INLINE const Scaled s_ScaledPi = "3.1415926535897932384626433832795"; // π
-INLINE const Scaled s_ScaledE = "2.718281828459045235360287471352"; // e
 INLINE const Scaled s_ScaledPi2 = s_ScaledPi * 2; //  2π
 INLINE const Scaled s_ScaledMinusPi2 = s_ScaledPi * -2; // -2π
+INLINE const Scaled s_ScaledPiDiv2 = s_ScaledPi * .5; // π/2
+INLINE const Scaled s_ScaledPiDiv4 = s_ScaledPi * .25; // π/4
+INLINE const Scaled s_ScaledE = "2.718281828459045235360287471352"; // e
 INLINE const Scaled s_ScaledLn2 = "0.69314718055994530941723212145818"; // ln(2)
 INLINE const Scaled s_ScaledLn10 = "2.3025850929940456840179914546844"; // ln(10)
+
+// Precision and epsilon (the user can change these)
+
+INLINE Scaled s_ScaledEpsilon("1e-7");
+INLINE long s_lDividePrecision = 7 * 3;
+INLINE double s_dCheckingEpsilon = 1e-6;
 
 static Scaled quickError() {
 	Scaled out;
 	out.mkError();
 	return out;
 }
-
-// Precision and epsilon
-
-INLINE Scaled s_ScaledEpsilon("1e-7");
-INLINE long s_lDividePrecision = 7 * 3;
-INLINE double s_dCheckingEpsilon = 1e-6;
 
 void Scaled::clear() {
 	mSpecial = SPEC_NORMAL;
@@ -624,16 +625,18 @@ Scaled Scaled::tan(const Scaled &xIn) {
 		sign = -1;
 	}
 
+	/*
 	static Scaled PiDiv2, PiDiv4;
 	if (PiDiv2.isZero()) {
 		PiDiv2 = s_ScaledPi / 2;
 		PiDiv4 = s_ScaledPi / 4;
 	}
+	*/
 
 	// Reduce to [0, pi/4] using tan(x) = cot(pi/2 - x)
 	bool invert = false;
-	if (x > PiDiv4) {
-		x = PiDiv2 - x;
+	if (x > s_ScaledPiDiv4) {
+		x = s_ScaledPiDiv2 - x;
 		invert = true;
 	}
 
@@ -885,8 +888,7 @@ static bool eqz(const double a, double epsilon = 1) {
 }
 
 // For comparing long doubles
-// non-static to avoid warning
-bool EQ(const long double a, const long double b, long double epsilon = 1) {
+static bool EQ(const long double a, const long double b, long double epsilon = 1) {
 	if (epsilon == 1) {
 		epsilon = s_dCheckingEpsilon;
 	}
@@ -894,14 +896,35 @@ bool EQ(const long double a, const long double b, long double epsilon = 1) {
 	return std::abs(a - b) < epsilon;
 }
 
-// non-static to avoid warning
-bool NE(const long double a, const long double b, long double epsilon = 1) {
+static bool NE(const long double a, const long double b, long double epsilon = 1) {
 	return ! EQ(a, b, epsilon);
 }
 
-// non-static to avoid warning
-bool EQZ(const long double a, long double epsilon = 1) {
+static bool EQZ(const long double a, long double epsilon = 1) {
 	return EQ(a, 0.0L, epsilon);
+}
+
+void Scaled::testConstants(int &nSuccess, int &nFail) {
+	// Is a bit redundant to repeat this numbers here
+	const Scaled pi = "3.1415926535897932384626433832795";
+	const Scaled e = "2.718281828459045235360287471352";
+	const Scaled ln2 = "0.69314718055994530941723212145818";
+	const Scaled ln10 = "2.3025850929940456840179914546844";
+
+	if (s_ScaledZero == 0) { nSuccess++; } else { printf("ScaledZero != 0\n"); nFail++; }
+	if (s_ScaledPointFive == .5) { nSuccess++; } else { printf("ScaledPointFive != .5\n"); nFail++; }
+	if (s_ScaledOne == 1) { nSuccess++; } else { printf("ScaledOne != 1\n"); nFail++; }
+	if (s_ScaledTwo == 2) { nSuccess++; } else { printf("ScaledTwo != 2\n"); nFail++; }
+	if (s_ScaledFour == 4) { nSuccess++; } else { printf("ScaledFour != 4\n"); nFail++; }
+	if (s_ScaledMinusOne == -1) { nSuccess++; } else { printf("ScaledMinusOne != -1\n"); nFail++; }
+	if (s_ScaledPi == pi) { nSuccess++; } else { printf("ScaledPi != pi\n"); nFail++; }
+	if (s_ScaledPi2 == (pi * 2)) { nSuccess++; } else { printf("ScaledPi2 != pi * 2\n"); nFail++; }
+	if (s_ScaledMinusPi2 == (pi * -2)) { nSuccess++; } else { printf("ScaledMinusPi2 != pi * -2\n"); nFail++; }
+	if (s_ScaledPiDiv2 == (pi * .5)) { nSuccess++; } else { printf("ScaledPiDiv2 != pi / 2\n"); nFail++; }
+	if (s_ScaledPiDiv4 == (pi * .25)) { nSuccess++; } else { printf("ScaledPiDiv4 != pi / 4\n"); nFail++; }
+	if (s_ScaledE == e) { nSuccess++; } else { printf("ScaledE != e\n"); nFail++; }
+	if (s_ScaledLn2 == ln2) { nSuccess++; } else { printf("ScaledLn2 != ln(2)\n"); nFail++; }
+	if (s_ScaledLn10 == ln10) { nSuccess++; } else { printf("ScaledLn10 != ln(10)\n"); nFail++; }
 }
 
 bool Scaled::testStoreStr(const char *in, const char *correct) {
@@ -1062,7 +1085,7 @@ bool Scaled::testPow(const long double base, const long double expon) {
 	double epsilon = s_dCheckingEpsilon;
 	if (sizeof(double) == sizeof(long double)) {
 		// Happens on Visual Studio 2017
-		epsilon *= 100;
+		epsilon *= 100; // Make it less strict
 	}
 
 	if (NE(result, correct, epsilon)) {
@@ -1267,6 +1290,9 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		testLimit = 15;
 		trigInc *= 2;
 	}
+
+	printf("Testing constants with %d values\n", 10); // The 10 is approx
+	testConstants(nSuccess, nFail);
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
 	{

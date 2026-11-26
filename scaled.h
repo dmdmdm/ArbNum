@@ -129,6 +129,7 @@ public:
 	void operator++(int);
 	void operator--(int);
 
+	static void testConstants(int &nSuccess, int &nFail);
 	static bool testStoreStr(const char *, const char *);
 	static bool testStoreDouble(const double);
 	static bool testStoreLongDouble(const long double);
@@ -164,7 +165,7 @@ public:
 	static bool testLn(const double);
 	static bool testLog(const double);
 	static void makeTestValues(const long start, const long end, const long inc, std::vector<double> &);
-	static void testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs); // private
+	inline static void testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs); // private
 	static bool testAll();
 };
 
