@@ -286,7 +286,7 @@ std::string Scaled::toString() const {
 
 double Scaled::toDouble() const {
 	// We need to use std::pow() here (and not powLong()) because its a negative exponent
-	return mUnscaled.toDouble() * std::pow(10.0, - mExp);
+	return mUnscaled.toDouble() * std::pow(10.0, (double) - mExp);
 }
 
 long double Scaled::toLongDouble() const {
@@ -666,7 +666,7 @@ Scaled Scaled::expTaylor(const Scaled &r) {
 	return sum;
 }
 
-// exp(a) = e ^ a.  Taylor services
+// exp(a) = e ^ a
 Scaled Scaled::exp(const Scaled &a) {
 	if (a.isError()) return a;
 	if (a.isZero()) { return s_ScaledOne; }
@@ -676,18 +676,6 @@ Scaled Scaled::exp(const Scaled &a) {
     Scaled k = round(a / s_ScaledLn2);
     const Scaled r = a - k * s_ScaledLn2;
 
-	/*
-    // Taylor series: exp(r) = 1 + r + r²/2! + ...
-    Scaled sum = 1;
-    Scaled term = 1;
-
-	const Scaled epsilon = s_ScaledEpsilon / 100; // 2 digits more accurate
-	for (long n = 1;; n++) {
-        term *= r / n; // term = term * r / n;
-		sum += term;
-		if (abs(term) < epsilon) break;
-	}
-	*/
 	Scaled sum = expTaylor(r);
 
     // Since exp(a) = exp(r) * 2^k, scale by powers of 2.
@@ -725,7 +713,7 @@ Scaled Scaled::powInt(const Scaled &base, const Scaled &expon) {
 	}
 }
 
-// Uses powInt(), exp(), ln()
+// pow(base, expon) = base ^ expon
 Scaled Scaled::pow(const Scaled &base, const Scaled &expon) {
 	if (base.isZero()) { return s_ScaledZero; }
 	if (base.isOne() || expon.isZero()) { return s_ScaledOne; }
@@ -749,7 +737,16 @@ Scaled Scaled::pow(const Scaled &base, const Scaled &expon) {
 		return quickError();
 	}
 	else if (base.isPositive()) {
-        return Scaled::exp(expon * Scaled::ln(base));
+        // return Scaled::exp(expon * Scaled::ln(base));
+
+		// We increase the precious of the ln().
+		// This was necessary to get pow() to pass unit tests.
+		const long prec = getPrecisionGlobal();
+		setPrecisionGlobal(MKLONG(MKDOUBLE(prec) * 1.5));
+		const Scaled theLn = Scaled::ln(base);
+		setPrecisionGlobal(prec); // restore
+
+        return Scaled::exp(expon * theLn);
 	}
 	else if (base.isNegative()) {
 		ArbNum_log("pow: negative base is not yet supported\n");
@@ -1058,17 +1055,15 @@ bool Scaled::testExp(const double a) {
 	return eq(result, correct);
 }
 
-bool Scaled::testPow(const double base, const double expon) {
-	const double result = Scaled::pow(base, expon).toDouble();
-	const double correct = std::pow(base, expon);
+bool Scaled::testPow(const long double base, const long double expon) {
+	const long double result = Scaled::pow(base, expon).toLongDouble();
+	const long double correct = std::pow(base, expon);
 
-	const double epsilon = s_dCheckingEpsilon * 10000;
-
-	if (ne(result, correct, epsilon)) {
-		const double diff = std::abs(result - correct);
-		printf("pow(%g, %g) = %.17f (Scaled) != %.17f (double) diff=%.17f fail\n", base, expon, result, correct, diff);
+	if (NE(result, correct)) {
+		const long double diff = std::abs(result - correct);
+		printf("pow(%Lg, %Lg) = %.17Lf (Scaled) != %.17Lf (double) diff=%.17Lf fail\n", base, expon, result, correct, diff);
 	}
-	return eq(result, correct, epsilon);
+	return EQ(result, correct);
 }
 
 double Scaled::gcdDouble(const double a, const double b) {

@@ -29,6 +29,7 @@ enum { ARBNUM_LINE_SIZE = 1024 * 5 };
 // Covert
 
 #define MKLONG(_a) static_cast<long>(_a)
+#define MKDOUBLE(_a) static_cast<double>(_a)
 
 //------------------------------------------------------------------------------
 // Logging

@@ -160,7 +160,7 @@ public:
 	static bool testCos(const double);
 	static bool testTan(const double);
 	static bool testExp(const double);
-	static bool testPow(const double, const double);
+	static bool testPow(const long double, const long double);
 	static bool testLn(const double);
 	static bool testLog(const double);
 	static void makeTestValues(const long start, const long end, const long inc, std::vector<double> &);
