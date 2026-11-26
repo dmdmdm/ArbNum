@@ -1287,7 +1287,7 @@ bool Scaled::testAllInner(const std::string &testName, const long precision, int
 
 	// Github settings
 	if (!is_home) {
-		testLimit = 15;
+		testLimit = 20;
 		trigInc *= 2;
 	}
 
