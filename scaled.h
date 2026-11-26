@@ -165,7 +165,7 @@ public:
 	static bool testLn(const double);
 	static bool testLog(const double);
 	static void makeTestValues(const long start, const long end, const long inc, std::vector<double> &);
-	inline static void testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs); // private
+	inline static bool testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs); // private
 	static bool testAll();
 };
 

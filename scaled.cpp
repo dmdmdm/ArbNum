@@ -1271,12 +1271,12 @@ void Scaled::makeTestValues(const long start, const long end, const long inc, st
 	}
 }
 
-void Scaled::testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs) {
+bool Scaled::testAllInner(const std::string &testName, const long precision, int &nSuccess, int &nFail, const long startMs) {
 	const bool is_home = isHome();
 
 	if (precision < 3 || precision > 9) {
 		ArbNum_log("Sorry, scale must be 3 <= scale <= 9 for tests\n");
-		return;
+		return false;
 	}
 
 	printf("Starting %s\n", testName.c_str());
@@ -1291,7 +1291,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		trigInc *= 2;
 	}
 
-	printf("Testing constants with %d values\n", 10); // The 10 is approx
+	printf("Testing constants with %d values\n", 14);
 	testConstants(nSuccess, nFail);
 
 	ArbNum_setLogging(AN_QUIET); // Don't log about invalid numbers
@@ -1488,7 +1488,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	{
 	const double testPiMult[] = { .5, -.5, .25, -.25 };
 	const double testPiDiv[] = { 2, -2, 4, -4 };
@@ -1503,7 +1503,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	} }		
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing gcd with %ld values\n", nValues);
 	for (double a : a_values) {
 		for (double b : b_values) {
@@ -1516,7 +1516,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing lcm with %ld values\n", nValues);
 	for (double a : a_values) {
 		for (double b : b_values) {
@@ -1529,7 +1529,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing sqrt with %ld values\n", nValues);
 	for (double a = 0; a <= A_END; a += (double)A_INC) {
 		if (testSqrt(a)) {
@@ -1540,7 +1540,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing isPrime with %d values\n", 50 / 3);
 	for (double a = 0; a <= 50; a+= 3) {
 		if (testIsPrime(a)) {
@@ -1551,7 +1551,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing factorial with %d values\n", 13);
 	for (double a = 1; a < 13; a++) {
 		if (testFactorial(a)) {
@@ -1562,7 +1562,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing sin with %g values\n", (7 + 7) / trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (testSin(a)) {
@@ -1573,7 +1573,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing cos with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (testCos(a)) {
@@ -1584,7 +1584,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing tan with %g values\n", (7 + 7) /  trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (testTan(a)) {
@@ -1595,7 +1595,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing exp with %d values\n", 10 + 10);
 	for (double a = -10; a < 10; a++) {
 		if (testExp(a)) {
@@ -1606,12 +1606,12 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	{
 	const double nPow = (7 + 7) / trigInc;
 	printf("Testing pow with %ld values\n", MKLONG(nPow * nPow));
 	for (double a = -7; a < 7; a += trigInc) {
-		if (getDurationSeconds(startMs) > testLimit) return;
+		if (getDurationSeconds(startMs) > testLimit) return false;
 		for (double b = -7; b < 7; b += trigInc) {
 			if (a < 0) continue; // Negative base not supported yet
 			if (testPow(a, b)) {
@@ -1624,7 +1624,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 	}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing ln with %g values\n", (7 + 7) / trigInc);
 	for (double a = -7; a < 7; a += trigInc) {
 		if (a <= 0) continue; // Not defined
@@ -1636,7 +1636,7 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 		}
 	}
 
-	if (getDurationSeconds(startMs) > testLimit) return;
+	if (getDurationSeconds(startMs) > testLimit) return false;
 	printf("Testing log with %ld values\n", a_values.size());
 	for (double a : a_values) {
 		if (a <= 0) continue; // Not defined
@@ -1647,6 +1647,8 @@ void Scaled::testAllInner(const std::string &testName, const long precision, int
 			nFail++;
 		}
 	}
+
+	return true;
 }
 
 bool Scaled::testAll() {
@@ -1655,7 +1657,11 @@ bool Scaled::testAll() {
 	const long precision = getPrecisionGlobal();
 	const std::string testName = "scaledTest scale=" + std::to_string(precision);
 	const long startMs = currentMillis();
-	testAllInner(testName, precision, nSuccess, nFail, startMs);
+
+	if (!testAllInner(testName, precision, nSuccess, nFail, startMs)) {
+		printf("Time ran out -- didn't complete all tests\n");
+	}
+
 	printTestResults(testName.c_str(), nSuccess, nFail, startMs);
 	return nFail == 0;
 }
