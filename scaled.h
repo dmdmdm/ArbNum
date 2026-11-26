@@ -103,7 +103,7 @@ public:
 	static Scaled sin(const Scaled &);
 	static Scaled cos(const Scaled &);
 	static Scaled tan(const Scaled &);
-	static Scaled expTaylor(const Scaled &); // private
+	inline static Scaled expTaylor(const Scaled &); // private
 	static Scaled exp(const Scaled &); // e ^ x
 	static Scaled powInt(const Scaled &, const Scaled &);
 	static Scaled pow(const Scaled &, const Scaled &);

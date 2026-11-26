@@ -1059,11 +1059,17 @@ bool Scaled::testPow(const long double base, const long double expon) {
 	const long double result = Scaled::pow(base, expon).toLongDouble();
 	const long double correct = std::pow(base, expon);
 
-	if (NE(result, correct)) {
+	double epsilon = s_dCheckingEpsilon;
+	if (sizeof(double) == sizeof(long double)) {
+		// Happens on Visual Studio 2017
+		epsilon *= 100;
+	}
+
+	if (NE(result, correct, epsilon)) {
 		const long double diff = std::abs(result - correct);
 		printf("pow(%Lg, %Lg) = %.17Lf (Scaled) != %.17Lf (double) diff=%.17Lf fail\n", base, expon, result, correct, diff);
 	}
-	return EQ(result, correct);
+	return EQ(result, correct, epsilon);
 }
 
 double Scaled::gcdDouble(const double a, const double b) {
