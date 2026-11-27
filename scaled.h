@@ -9,13 +9,12 @@
 class ScaledDivide;
 
 class Scaled {
-	typedef enum { SPEC_NORMAL, SPEC_ERROR, SPEC_IGNORE } SpecialType;
-	SpecialType	mSpecial = SPEC_NORMAL;
 	Integer mUnscaled; // The unscaled value
 	long mExp = 0; // Exponent (Value = mUnscaled * 10 ^ -mExp)
 	// Using a long for the exponent means there is a limit on the size of our numbers.
 	// The POSIX bc does the same thing.
 
+	static Scaled quickError();
 	void clear();
 	void shiftLeft(const long numberOfDigits) { mUnscaled.shiftLeft(numberOfDigits); }
 
@@ -38,13 +37,17 @@ public:
 	Scaled(const long);
 	Scaled(const long long);
 
-	void mkError() { clear(); mSpecial = SPEC_ERROR; }
-	bool isError() const { return mSpecial == SPEC_ERROR; }
+	void setSpecial(const ArbNum_SpecialType spec) { mUnscaled.setSpecial(spec); }
+	ArbNum_SpecialType getSpecial() const { return mUnscaled.getSpecial(); }
 
-	void mkIgnore() { clear(); mSpecial = SPEC_IGNORE; }
-	bool isIgnore() const { return mSpecial == SPEC_IGNORE; }
+	void mkError() { mUnscaled.mkError(); }
+	bool isError() const { return mUnscaled.isError(); }
 
-	bool isNormal() const { return mSpecial == SPEC_NORMAL; }
+	void mkIgnore() { mUnscaled.mkIgnore(); }
+	bool isIgnore() const { return mUnscaled.isIgnore(); }
+
+	void mkNormal() { mUnscaled.mkNormal(); }
+	bool isNormal() const { return mUnscaled.isNormal(); }
 
 	// Methods
 	bool isZero() const; // Maybe you want isCloseToZero() ?
