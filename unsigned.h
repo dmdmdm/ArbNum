@@ -9,8 +9,12 @@
 
 class UnsignedDivide;
 
+typedef enum { SPEC_NORMAL, SPEC_ERROR, SPEC_IGNORE } ArbNum_SpecialType;
+
 class Unsigned {
 	// We use long rather than size_t in all function prototypes
+
+	ArbNum_SpecialType mSpecial = SPEC_NORMAL;
 
 	typedef std::vector<int> digits_t;
 	digits_t mDigits;
@@ -23,7 +27,6 @@ class Unsigned {
 	static int charToInt(const char);
 	static char intToChar(const int);
 
-	void mkError();
 	void prepend(const int digit) { mDigits.insert(mDigits.begin(), digit); }
 	void append(const int digit) { mDigits.push_back(digit); }
 	static Unsigned findDivisibleSizedChunk(const Unsigned &runningDividend, const Unsigned &dividend, const Unsigned &divisor, long &iDividendPos, bool &fits);
@@ -33,6 +36,18 @@ class Unsigned {
 	static UnsignedDivide divideWithRemFast(const Unsigned &, const Unsigned &);
 
 public:
+	void setSpecial(const ArbNum_SpecialType spec) { mSpecial = spec; }
+	ArbNum_SpecialType getSpecial() const { return mSpecial; }
+
+	void mkError() { mSpecial = SPEC_ERROR; }
+	bool isError() const { return mSpecial == SPEC_ERROR; }
+
+	void mkIgnore() { mSpecial = SPEC_IGNORE; }
+	bool isIgnore() const { return mSpecial == SPEC_IGNORE; }
+
+	void mkNormal() { mSpecial = SPEC_NORMAL; }
+	bool isNormal() const { return mSpecial == SPEC_NORMAL; }
+
 	void trimLeading();
 	long trimTrailing(const long);
 	long removeAtEnd(const long);

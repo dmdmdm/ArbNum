@@ -164,10 +164,6 @@ void Unsigned::clear() {
 	mDigits.clear();
 }
 
-void Unsigned::mkError() {
-	clear();	// Doesn't really set an error.  But will case unit tests to fail which should raise a flag.
-}
-
 void Unsigned::saveNumber(const char *s) {
 	for (const char *p = s; *p; p++) {
 		if (*p == '.') {
@@ -260,48 +256,28 @@ Unsigned::Unsigned(const char *in) {
 Unsigned::Unsigned(const unsigned int n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%u", n);
-#else
 	snprintf(buf, sizeof(buf), "%u", n);
-#endif
-
 	saveNumber(buf);
 }
 
 Unsigned::Unsigned(const int n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%d", n);
-#else
 	snprintf(buf, sizeof(buf), "%d", n);
-#endif
-
 	saveNumber(buf);
 }
 
 Unsigned::Unsigned(const long n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%ld", n);
-#else
 	snprintf(buf, sizeof(buf), "%ld", n);
-#endif
-
 	saveNumber(buf);
 }
 
 Unsigned::Unsigned(const long long n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%lld", n);
-#else
 	snprintf(buf, sizeof(buf), "%lld", n);
-#endif
-
 	saveNumber(buf);
 }
 
@@ -380,7 +356,7 @@ void Unsigned::subtractMutable(Unsigned &workingA, Unsigned &workingB) {
 	}
 
 	if (borrow > 0) {
-		fprintf(stderr, "Unsigned::subtract: Should not have a borrow\n");
+		ArbNum_log("Unsigned::subtract: Should not have a borrow\n");
 		workingA.mkError();
 	}
 
@@ -744,7 +720,7 @@ bool Unsigned::testStoreStr(const char *in, const unsigned int correct) {
 	const Unsigned myunsigned(in);
 	const unsigned int result = myunsigned.toUnsignedInt();
 	if (result != correct) {
-		fprintf(stderr, "Store Str %u = %u (Unsigned) != %u (unsigned int) fail\n", correct, result, correct);
+		printf("Store Str %u = %u (Unsigned) != %u (unsigned int) fail\n", correct, result, correct);
 	}
 	return result == correct;
 }
@@ -753,7 +729,7 @@ bool Unsigned::testStoreUnsigned(const unsigned int correct) {
 	const Unsigned myunsigned(correct);
 	const unsigned int result = (unsigned int)atoi(myunsigned.toString().c_str());
 	if (result != correct) {
-		fprintf(stderr, "Store unsigned %u = %u (Unsigned) != %u (unsigned int) fail\n", correct, result, correct);
+		printf("Store unsigned %u = %u (Unsigned) != %u (unsigned int) fail\n", correct, result, correct);
 	}
 	return result == correct;
 }
@@ -762,7 +738,7 @@ bool Unsigned::testStoreLong(const long correct) {
 	const Unsigned myunsigned(correct);
 	const long result = atol(myunsigned.toString().c_str());
 	if (result != correct) {
-		fprintf(stderr, "Store Long %ld = %ld (Unsigned) != %ld (long) fail\n", correct, result, correct);
+		printf("Store Long %ld = %ld (Unsigned) != %ld (long) fail\n", correct, result, correct);
 	}
 	return result == correct;
 }
@@ -771,7 +747,7 @@ bool Unsigned::testStoreLongLong(const long long lCorrect) {
 	const Unsigned myunsigned(lCorrect);
 	const long long lResult = atoll(myunsigned.toString().c_str());
 	if (lResult != lCorrect) {
-		fprintf(stderr, "Store Long Long %lld = %lld (Unsigned) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
+		printf("Store Long Long %lld = %lld (Unsigned) != %lld (long long) fail\n", lCorrect, lResult, lCorrect);
 	}
 	return lResult == lCorrect;
 }
@@ -786,7 +762,7 @@ bool Unsigned::testCompare(const unsigned int a, const unsigned int b) {
 	const int result = Unsigned::compare(a, b);
 	const int correct = compareNativeUnsigned(a, b);
 	if (result != correct) {
-		fprintf(stderr, "%u <> %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("%u <> %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 		exit(0);
 	}
 	return result == correct;
@@ -796,7 +772,7 @@ bool Unsigned::testAdd(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::add(a, b).toUnsignedInt();
 	const unsigned int correct = a + b;
 	if (result != correct) {
-		fprintf(stderr, "%u + %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("%u + %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -805,7 +781,7 @@ bool Unsigned::testSubtract(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::subtract(a, b).toUnsignedInt();
 	const unsigned int correct = a - b;
 	if (result != correct) {
-		fprintf(stderr, "%u - %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("%u - %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -814,7 +790,7 @@ bool Unsigned::testMultiply(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::multiply(a, b).toUnsignedInt();
 	const unsigned int correct = a * b;
 	if (result != correct) {
-		fprintf(stderr, "%u * %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("%u * %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -823,7 +799,7 @@ bool Unsigned::testDivide(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::divide(a, b).toUnsignedInt();
 	const unsigned int correct = a / b;
 	if (result != correct) {
-		fprintf(stderr, "%u / %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("%u / %u = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -832,7 +808,7 @@ bool Unsigned::testMod(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::mod(a, b).toUnsignedInt();
 	const unsigned int correct = a % b;
 	if (result != correct) {
-		fprintf(stderr, "mod(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("mod(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -841,7 +817,7 @@ bool Unsigned::testPow(const unsigned int a, const unsigned int b) {
 	const unsigned int result = Unsigned::pow(a, b).toUnsignedInt();
 	const unsigned int correct = (unsigned int) powLong(a, b);
 	if (result != correct) {
-		fprintf(stderr, "pow(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("pow(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -863,7 +839,7 @@ bool Unsigned::testGcd(const unsigned int a, const unsigned int b) {
 	const unsigned int correct = gcdNativeUnsigned(a, b);
 #endif
 	if (result != correct) {
-		fprintf(stderr, "gcd(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("gcd(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -882,7 +858,7 @@ bool Unsigned::testLcm(const unsigned int a, const unsigned int b) {
 	const unsigned int correct = lcmNativeUnsigned(a, b);
 #endif
 	if (result != correct) {
-		fprintf(stderr, "lcm(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
+		printf("lcm(%u, %u) = %u (Unsigned) != %u (unsigned int) fail\n", a, b, result, correct);
 	}
 	return result == correct;
 }
@@ -899,7 +875,7 @@ bool Unsigned::testSqrt(const unsigned int a) {
 	const unsigned int result = Unsigned::sqrt(a).toUnsignedInt();
 	const unsigned int correct = sqrtNativeUnsigned(a);
 	if (result != correct) {
-		fprintf(stderr, "sqrt(%u) = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
+		printf("sqrt(%u) = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
 	}
 	return result == correct;
 }
@@ -925,7 +901,7 @@ bool Unsigned::testIsPrime(const unsigned int a) {
 	const unsigned int result = Unsigned::isPrime(a).toUnsignedInt();
 	const unsigned int correct = isPrimeNativeUnsigned(a);
 	if (result != correct) {
-		fprintf(stderr, "isPrime(%u) = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
+		printf("isPrime(%u) = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
 	}
 	return result == correct;
 }
@@ -939,7 +915,7 @@ bool Unsigned::testFactorial(const unsigned int a) {
 	const unsigned int result = Unsigned::factorial(a).toUnsignedInt();
 	const unsigned int correct = factorialNativeUnsigned(a);
 	if (result != correct) {
-		fprintf(stderr, "%u! = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
+		printf("%u! = %u (Unsigned) != %u (unsigned int) fail\n", a, result, correct);
 	}
 	return result == correct;
 }

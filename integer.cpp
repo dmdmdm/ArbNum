@@ -15,6 +15,12 @@
 #include "util.h"
 #include "integer.h"
 
+#ifndef LONG_LONG_MIN
+// This happens on Microsoft Visual Studio
+#define LONG_LONG_MIN LLONG_MIN
+#define LONG_LONG_MAX LLONG_MAX
+#endif
+
 INLINE const Integer s_IntegerZero(0);
 INLINE const Integer s_IntegerOne(1);
 INLINE const Integer s_IntegerTwo(2);
@@ -26,18 +32,18 @@ INLINE const Integer s_IntegerLongLongMin(LONG_LONG_MIN);
 INLINE const Integer s_IntegerLongLongMax(LONG_LONG_MAX);
 
 void Integer::set(const Integer &in) {
-	mSpecial = in.mSpecial;
+	setSpecial(in.getSpecial());
 	mSign = in.mSign;
 	mUnsigned = in.mUnsigned;
 }
 
-Integer::Integer(const Unsigned &in) {
-	clear();
-	mUnsigned = in;
+Integer::Integer(const Unsigned &other) {
+	setSpecial(other.getSpecial());
+	mUnsigned = other;
 }
 
-Integer::Integer(const Integer &in) {
-	set(in);
+Integer::Integer(const Integer &other) {
+	set(other);
 }
 
 Integer::Integer(const char *s) {
@@ -47,36 +53,21 @@ Integer::Integer(const char *s) {
 Integer::Integer(const int n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%d", n);
-#else
 	snprintf(buf, sizeof(buf), "%d", n);
-#endif
-
 	saveNumber(buf);
 }
 
 Integer::Integer(const long n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%ld", n);
-#else
 	snprintf(buf, sizeof(buf), "%ld", n);
-#endif
-
 	saveNumber(buf);
 }
 
 Integer::Integer(const long long n) {
 	char	buf[100];
 
-#ifdef __BORLANDC__
-	sprintf(buf, "%lld", n);
-#else
 	snprintf(buf, sizeof(buf), "%lld", n);
-#endif
-
 	saveNumber(buf);
 }
 
@@ -94,7 +85,7 @@ long Integer::removeAtEnd(const long n) {
 
 void Integer::clear() {
 	// A checker said mSign isn't set in this function but it is set in mkPositive()
-	mSpecial = SPEC_NORMAL;
+	setSpecial(SPEC_NORMAL);
 	mkPositive();
 	mUnsigned.clear();
 }
@@ -406,9 +397,8 @@ long Integer::toLong() const {
 	}
 
 	// The formula below doesn't work in this case
-	if (*this == s_IntegerLongMin || *this == s_IntegerLongMax) {
-		return atol(toString().c_str());
-	}
+	if (*this == s_IntegerLongMin) return LONG_MIN;
+	if (*this == s_IntegerLongMax) return LONG_MAX;
 
 	return (long)mSign * mUnsigned.toLong();
 }
@@ -427,9 +417,8 @@ long long Integer::toLongLong() const {
 	}
 
 	// The formula below doesn't work in this case
-	if (*this == s_IntegerLongLongMin || *this == s_IntegerLongLongMax) {
-		return atoll(toString().c_str());
-	}
+	if (*this == s_IntegerLongLongMin) return LONG_LONG_MIN;
+	if (*this == s_IntegerLongLongMax) return LONG_LONG_MAX;
 
 	return (long long)mSign * mUnsigned.toLongLong();
 }

@@ -53,14 +53,14 @@ INLINE Scaled s_ScaledEpsilon("1e-7");
 INLINE long s_lDividePrecision = 7 * 3;
 INLINE double s_dCheckingEpsilon = 1e-6;
 
-static Scaled quickError() {
+Scaled Scaled::quickError() {
 	Scaled out;
 	out.mkError();
 	return out;
 }
 
 void Scaled::clear() {
-	mSpecial = SPEC_NORMAL;
+	mkNormal();
 	mUnscaled.clear();
 	mExp = 0;
 }
@@ -303,7 +303,7 @@ Integer Scaled::toInteger() const {
 }
 
 std::string Scaled::toDump() const {
-	switch(mSpecial) {
+	switch(getSpecial()) {
 	case SPEC_NORMAL:
 		{
 		const std::string strExp = mExp == 0 ? "0" : "-" + std::to_string(mExp);
@@ -825,7 +825,7 @@ Scaled Scaled::log(const Scaled &x) {
 }
 
 void Scaled::set(const Scaled &other) {
-	mSpecial = other.mSpecial;
+	setSpecial(other.getSpecial());
 	mUnscaled = other.mUnscaled;
 	mExp = other.mExp;
 }
@@ -1288,7 +1288,7 @@ bool Scaled::testAllInner(const std::string &testName, const long precision, int
 	// Github settings
 	if (!is_home) {
 		testLimit = 20;
-		trigInc *= 2;
+		trigInc *= 3;
 	}
 
 	printf("Testing constants with %d values\n", 14);

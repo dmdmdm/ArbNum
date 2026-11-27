@@ -11,8 +11,6 @@
 class IntegerDivide;
 
 class Integer {
-	typedef enum { SPEC_NORMAL, SPEC_ERROR, SPEC_IGNORE } SpecialType;
-	SpecialType	mSpecial = SPEC_NORMAL;
 	int 		mSign = 1;	// -1 or 1
 	Unsigned	mUnsigned;
 
@@ -43,13 +41,17 @@ public:
 
 	void saveNumber(const char *);
 
-	void mkError() { clear(); mSpecial = SPEC_ERROR; }
-	bool isError() const { return mSpecial == SPEC_ERROR; }
+	void setSpecial(const ArbNum_SpecialType spec) { mUnsigned.setSpecial(spec); }
+	ArbNum_SpecialType getSpecial() const { return mUnsigned.getSpecial(); }
 
-	void mkIgnore() { clear(); mSpecial = SPEC_IGNORE; }
-	bool isIgnore() const { return mSpecial == SPEC_IGNORE; }
+	void mkError() { mUnsigned.mkError(); }
+	bool isError() const { return mUnsigned.isError(); }
 
-	bool isNormal() const { return mSpecial == SPEC_NORMAL; }
+	void mkIgnore() { mUnsigned.mkIgnore(); }
+	bool isIgnore() const { return mUnsigned.isIgnore(); }
+
+	void mkNormal() { mUnsigned.mkNormal(); }
+	bool isNormal() const { return mUnsigned.isNormal(); }
 
 	// Constructors
 	Integer() { clear(); }
