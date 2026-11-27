@@ -7,7 +7,7 @@ I tried to do arbitrary precision real number (numbers with decimal points) math
 
 # What it can do
 - add, subtract, multiply, divide, remainder (mod)
-- abs() ceil() cos() factorial() floor() gcd() isprime() lcm() max() min() random() round() sign() sin() sqrt() tan()
+- abs() ceil() cos() exp() factorial() floor() gcd() isprime() lcm() ln() log() max() min() random() round() sign() sin() sqrt() tan()
 - with real numbers (numbers with decimal points) of any length
 
 # Files
